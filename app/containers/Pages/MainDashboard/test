@@ -1,0 +1,64 @@
+import React, { Component } from 'react';
+import PropTypes from 'prop-types';
+import {
+  Grid, withStyles, Paper, IconButton
+} from '@material-ui/core';
+import Ionicon from 'react-ionicons';
+import styles from './Dashboard-jss';
+
+export class DSHBCharts extends Component {
+  state = {
+    list: [
+      { id: 1, full: false },
+      { id: 2, full: false },
+      { id: 3, full: false },
+      { id: 4, full: false },
+      { id: 5, full: false }
+    ]
+  };
+
+  handleChangeSize = id => {
+    const { list } = this.state;
+    list.map(obj => {
+      if (obj.id === id) {
+        obj.full = !obj.full;
+      }
+      return obj;
+    });
+    this.setState({
+      list
+    });
+  };
+
+  renderChart = (full, id) => {
+    const { classes } = this.props;
+    return (
+      <Grid item xs={12} md={full ? 12 : 6}>
+        <Paper elevation={3} className={classes.chartGrid}>
+          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <IconButton onClick={() => this.handleChangeSize(id)}>
+              <Ionicon icon="ios-resize" />
+            </IconButton>
+          </div>
+        </Paper>
+      </Grid>
+    );
+  };
+
+  render() {
+    const { list } = this.state;
+    return (
+      <div>
+        <Grid container>
+          {list.map(row => this.renderChart(row.full, row.id))}
+        </Grid>
+      </div>
+    );
+  }
+}
+
+DSHBCharts.propTypes = {
+  classes: PropTypes.object.isRequired
+};
+
+export default withStyles(styles)(DSHBCharts);
