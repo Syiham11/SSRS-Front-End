@@ -287,7 +287,6 @@ class ImportDatabase extends Component {
 
   handleHistoryDatabaseSourcesOk = radioChoosedIndex => {
     const { historyDatabaseSources } = this.state;
-    console.log('index ' + radioChoosedIndex);
     this.setState({
       selectedDatabaseType: historyDatabaseSources[radioChoosedIndex].type,
       username: historyDatabaseSources[radioChoosedIndex].username,
@@ -331,8 +330,6 @@ class ImportDatabase extends Component {
   };
 
   handleDeleteDatabaseSource = dbs => {
-    console.log('delete');
-    console.log(dbs);
     const config = {
       headers: { Authorization: sessionStorage.getItem('token') }
     };

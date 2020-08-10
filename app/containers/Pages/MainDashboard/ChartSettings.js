@@ -98,13 +98,13 @@ class ChartSettings extends Component {
     );
   }
 
-  componentWillUnmount() {
-    console.log('settings disposed');
-  }
-
   handleApplySettings = () => {
     const {
-      charts, setDashboardCharts, chartId, closeDialog, updateDelay
+      charts,
+      setDashboardCharts,
+      chartId,
+      closeDialog,
+      updateDelay
     } = this.props;
     const {
       chartParam, plotList, data, chartType

@@ -269,8 +269,6 @@ class Calcul extends Component {
   };
 
   handleDeleteFormula = formula => {
-    console.log('delete');
-    console.log(formula);
     const config = {
       headers: { Authorization: sessionStorage.getItem('token') }
     };

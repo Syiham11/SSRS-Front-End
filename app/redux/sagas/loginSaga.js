@@ -40,7 +40,6 @@ function* workerSaga(action) {
       });
     }
   } catch (e) {
-    console.log(e.toString().includes('403'));
     if (e.toString().includes('403')) {
       yield put({
         type: LOGIN_FAILED,

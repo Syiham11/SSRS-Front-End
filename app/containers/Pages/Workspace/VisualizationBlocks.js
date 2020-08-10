@@ -204,11 +204,9 @@ class VisualizationBlock extends Component {
       const obj2 = {
         settings: JSON.stringify(chart.settings)
       };
-      console.log(obj2);
       list.push(obj2);
     });
     const items = [obj, list];
-    console.log(list);
     const { sub } = JSON.parse(sessionStorage.getItem('user'));
     const config = {
       headers: { Authorization: sessionStorage.getItem('token') }
@@ -221,7 +219,6 @@ class VisualizationBlock extends Component {
       config
     )
       .then(response => {
-        console.log(response.data);
         if (!response.data) {
           Axios.post(
             'http://localhost:9090/workspace/save&' + sub,
@@ -229,7 +226,6 @@ class VisualizationBlock extends Component {
             config
           )
             .then(response2 => {
-              console.log('saved');
               console.log(response2.data);
             })
             .catch(error => {
@@ -239,7 +235,6 @@ class VisualizationBlock extends Component {
           const items2 = [obj, list];
           Axios.post('http://localhost:9090/workspace/update', items2, config)
             .then(response2 => {
-              console.log('updated');
               console.log(response2.data);
             })
             .catch(error => {

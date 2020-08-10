@@ -88,7 +88,6 @@ export class Panel extends Component {
       headers: { Authorization: sessionStorage.getItem('token') }
     };
     Axios.get(apiURL + '/administration/getAllUser', config).then(response => {
-      console.log(response.data);
       this.setState({
         users: response.data
       });

@@ -24,7 +24,6 @@ const workspace = (state = initialImmutableState, action = {}) => {
         mutableState.set('charts', action.charts);
       });
     case REMOVE_DASHBOARD_CHART: {
-      console.log('reducer delete ' + action.index);
       let newCharts = state.toJS().charts;
       if (action.index === 0) {
         newCharts = newCharts.splice(1, newCharts.length);

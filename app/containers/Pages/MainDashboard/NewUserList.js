@@ -7,24 +7,51 @@ import {
   Avatar,
   Icon
 } from '@material-ui/core';
+import Axios from 'axios';
 import avatarApi from 'dan-api/images/avatars';
 import ListItemAvatar from '@material-ui/core/ListItemAvatar';
 import PropTypes from 'prop-types';
 import styles from './Dashboard-jss';
 import PapperBlock from '../../../components/PapperBlock/PapperBlock';
 
-const tasks = [
-  { username: 'username 1', email: 'email1@gmail.com' },
-  { username: 'username 2', email: 'email2@gmail.com' },
-  { username: 'username 3', email: 'email3@gmail.com' },
-  { username: 'username 4', email: 'email4@gmail.com' },
-  { username: 'username 5', email: 'email5@gmail.com' },
-  { username: 'username 6', email: 'email6@gmail.com' }
-];
+const apiURL = 'http://localhost:9090';
 
 class NewUserList extends Component {
+  state = {
+    users: []
+  };
+
+  componentDidMount() {
+    this.updateUsersList();
+  }
+
+  updateUsersList = () => {
+    const config = {
+      headers: { Authorization: sessionStorage.getItem('token') }
+    };
+    Axios.get(apiURL + '/administration/getAllDeactivatedUsers', config).then(
+      response => {
+        this.setState({
+          users: response.data
+        });
+      }
+    );
+  };
+
+  activateUser = index => {
+    const { users } = this.state;
+    const config = {
+      headers: { Authorization: sessionStorage.getItem('token') }
+    };
+    users[index].activated = true;
+    Axios.post(apiURL + '/updateUser', users[index], config).then(() => {
+      this.updateUsersList();
+    });
+  };
+
   render() {
     const { classes } = this.props;
+    const { users } = this.state;
     return (
       <div
         style={{
@@ -40,7 +67,7 @@ class NewUserList extends Component {
           desc="New users account needs to be approuved"
         >
           <Paper className={classes.taskInnerDiv}>
-            {tasks.map((task, index) => (
+            {users.map((user, index) => (
               <div
                 className={classes.divSpace}
                 style={{ padding: '10px 10px 10px 10px' }}
@@ -57,14 +84,14 @@ class NewUserList extends Component {
                       variant="body1"
                       gutterBottom
                     >
-                      {task.username}
+                      {user.username}
                     </Typography>
                     <Typography
                       id={'desc' + index}
                       variant="body2"
                       gutterBottom
                     >
-                      {task.email}
+                      {user.email}
                     </Typography>
                   </div>
                 </div>
@@ -77,6 +104,7 @@ class NewUserList extends Component {
                       fontSize: '12px',
                       color: 'white'
                     }}
+                    onClick={() => this.activateUser(index)}
                   >
                     Approuve
                   </Button>

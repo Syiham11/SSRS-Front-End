@@ -8,6 +8,7 @@ import {
   Box,
   Button
 } from '@material-ui/core';
+import Axios from 'axios';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -21,13 +22,6 @@ import UndoOutlinedIcon from '@material-ui/icons/UndoOutlined';
 import RedoOutlinedIcon from '@material-ui/icons/RedoOutlined';
 import SettingsBackupRestoreOutlinedIcon from '@material-ui/icons/SettingsBackupRestoreOutlined';
 import styles from './import-jss';
-import data from '../Workspace/sampleData1';
-import data1 from '../Workspace/sampleData2';
-
-const tables = [
-  { id: 'table1', name: 'table 1' },
-  { id: 'table2', name: 'table 2' }
-];
 
 const mergeTypes = [
   { id: 'Horizontal', name: 'Horizontal' },
@@ -41,24 +35,45 @@ const joinTypes = [
   { id: 'fullOuterJoin', name: 'Full Outer Join' }
 ];
 
+const apiURL = 'http://localhost:9090/datawarehouse';
+const config = {
+  headers: { Authorization: sessionStorage.getItem('token') }
+};
+
 class MergeData extends Component {
   state = {
     selectedTable: '',
     choosedMerge: '',
     choosedJoin: '',
     choosedReference: '',
-    isSpinnerShowed: false
+    isSpinnerShowed: false,
+    tables: [],
+    data: []
   };
+
+  componentDidMount() {
+    Axios.get(apiURL + '/tables', config).then(response => {
+      console.log(response.data);
+      this.setState({
+        tables: response.data
+      });
+    });
+  }
 
   handleTableChange = event => {
     const { showMergedTable, handleSetData } = this.props;
     this.setState({
-      selectedTable: event.target.value
+      selectedTable: event.target.value,
+      isSpinnerShowed: true
     });
-    if (event.target.value === 'table 1') {
-      handleSetData(data);
-    } else handleSetData(data1);
-    showMergedTable(true);
+    Axios.get(apiURL + '/data/' + event.target.value, config).then(response => {
+      handleSetData(response.data);
+      showMergedTable(true);
+      this.setState({
+        isSpinnerShowed: false,
+        data: response.data
+      });
+    });
   };
 
   handleMergeTypeChange = event => {
@@ -88,42 +103,30 @@ class MergeData extends Component {
   handleApplyClick = () => {
     const { tableData, setTableData } = this.props;
     const {
-      choosedMerge,
-      choosedJoin,
-      selectedTable,
-      choosedReference
+      choosedMerge, choosedJoin, choosedReference, data
     } = this.state;
     this.setState({
       isSpinnerShowed: true
     });
     setTimeout(() => {
-      let dataSet = [];
-      if (selectedTable === 'table 1') {
-        dataSet = JSON.parse(JSON.stringify(data));
-      } else dataSet = JSON.parse(JSON.stringify(data1));
       let tbData = JSON.parse(JSON.stringify(tableData));
       if (choosedMerge === 'Vertical') {
-        const keys1 = Object.keys(dataSet[0]);
+        const keys1 = Object.keys(data[0]);
         const keys2 = Object.keys(tableData[0]);
         if (JSON.stringify(keys1) === JSON.stringify(keys2)) {
-          tbData = tbData.concat(dataSet);
+          tbData = tbData.concat(data);
           setTableData(tbData);
         } else alert("the tables doesn't have the same columns!");
-      } else if (
-        choosedReference in tbData[0]
-        && choosedReference in dataSet[0]
-      ) {
+      } else if (choosedReference in tbData[0] && choosedReference in data[0]) {
         const finalData = [];
         if (choosedJoin === 'Full Outer Join' || choosedJoin === 'Left Join') {
-          const keys = Object.keys(dataSet[0]);
+          const keys = Object.keys(data[0]);
           for (let i = 0; i < tbData.length; i += 1) {
             let exist = false;
-            for (let j = 0; j < dataSet.length; j += 1) {
+            for (let j = 0; j < data.length; j += 1) {
               let obj = {};
-              if (
-                tbData[i][choosedReference] === dataSet[j][choosedReference]
-              ) {
-                obj = { ...tbData[i], ...dataSet[j] };
+              if (tbData[i][choosedReference] === data[j][choosedReference]) {
+                obj = { ...tbData[i], ...data[j] };
                 finalData.push(obj);
                 exist = true;
                 break;
@@ -142,12 +145,10 @@ class MergeData extends Component {
         }
         if (choosedJoin === 'Full Outer Join') {
           const keys = Object.keys(tbData[0]);
-          for (let i = 0; i < dataSet.length; i += 1) {
+          for (let i = 0; i < data.length; i += 1) {
             let exist = false;
             for (let j = 0; j < tbData.length; j += 1) {
-              if (
-                dataSet[i][choosedReference] === tbData[j][choosedReference]
-              ) {
+              if (data[i][choosedReference] === tbData[j][choosedReference]) {
                 exist = true;
                 break;
               }
@@ -160,23 +161,21 @@ class MergeData extends Component {
                 }
               });
               finalData.push({
-                [choosedReference]: dataSet[i][choosedReference],
+                [choosedReference]: data[i][choosedReference],
                 ...obj,
-                ...dataSet[i]
+                ...data[i]
               });
             }
           }
         }
         if (choosedJoin === 'Right Join') {
           const keys = Object.keys(tbData[0]);
-          for (let i = 0; i < dataSet.length; i += 1) {
+          for (let i = 0; i < data.length; i += 1) {
             let exist = false;
             for (let j = 0; j < tbData.length; j += 1) {
               let obj = {};
-              if (
-                dataSet[i][choosedReference] === tbData[j][choosedReference]
-              ) {
-                obj = { ...dataSet[i], ...tbData[j] };
+              if (data[i][choosedReference] === tbData[j][choosedReference]) {
+                obj = { ...data[i], ...tbData[j] };
                 finalData.push(obj);
                 exist = true;
                 break;
@@ -190,16 +189,16 @@ class MergeData extends Component {
                 }
               });
               finalData.push({
-                [choosedReference]: dataSet[i][choosedReference],
+                [choosedReference]: data[i][choosedReference],
                 ...obj,
-                ...dataSet[i]
+                ...data[i]
               });
             }
           }
         }
         if (choosedJoin === 'Inner Join') {
           tbData.forEach(obj => {
-            dataSet.forEach(obj2 => {
+            data.forEach(obj2 => {
               if (obj[choosedReference] === obj2[choosedReference]) {
                 finalData.push({ ...obj, ...obj2 });
               }
@@ -227,7 +226,8 @@ class MergeData extends Component {
       choosedMerge,
       choosedJoin,
       choosedReference,
-      isSpinnerShowed
+      isSpinnerShowed,
+      tables
     } = this.state;
     let keys = [];
     if (tableData[0] !== undefined) {
@@ -296,8 +296,8 @@ class MergeData extends Component {
                   onChange={this.handleTableChange}
                 >
                   {tables.map(table => (
-                    <MenuItem key={table.id} value={table.name}>
-                      {table.id}
+                    <MenuItem key={table} value={table}>
+                      {table}
                     </MenuItem>
                   ))}
                 </Select>

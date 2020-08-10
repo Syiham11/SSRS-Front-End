@@ -19,7 +19,9 @@ const styles = theme => ({
   taskInnerDiv: {
     backgroundColor: theme.palette.primary.light,
     padding: 10,
-    margin: '20px 20px 20px 20px'
+    margin: '20px 20px 20px 20px',
+    height: '500px',
+    overflowX: 'auto'
   },
   divColumn: {
     display: 'flex',

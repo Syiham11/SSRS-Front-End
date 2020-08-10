@@ -51,7 +51,7 @@ class VisualizationBlock extends Component {
           showBrush: false,
           table: '',
           choosedColumns: '',
-          delay: 100000
+          delay: 0
         },
         data: [{}]
       }

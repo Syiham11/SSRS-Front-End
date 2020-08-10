@@ -248,7 +248,6 @@ export class ReportEditor extends Component {
 
   insertElement = type => {
     const { elements, id } = this.state;
-    console.log('id ' + id);
     if (type === 'text') {
       this.setState({
         elements: elements.concat({
@@ -381,9 +380,6 @@ export class ReportEditor extends Component {
     const { elements } = this.state;
     const list = [];
     elements.forEach(item => {
-      console.log(
-        document.getElementById('element' + item.id).getAttribute('data-x')
-      );
       const item1 = {
         id: item.id,
         type: item.type,
@@ -399,11 +395,6 @@ export class ReportEditor extends Component {
       };
       list.push(item1);
     });
-    list.forEach(item => {
-      console.log('id ' + item.id);
-      console.log('x  ' + item.x);
-      console.log('y  ' + item.y);
-    });
     const { sub } = JSON.parse(sessionStorage.getItem('user'));
     const config = {
       headers: { Authorization: sessionStorage.getItem('token') }
@@ -414,7 +405,6 @@ export class ReportEditor extends Component {
     };
     Axios.post('http://localhost:9090/report/save&' + sub, obj, config)
       .then(response => {
-        console.log('saved');
         console.log(response.data);
         this.updateHistoryList();
       })
@@ -444,7 +434,6 @@ export class ReportEditor extends Component {
 
   handleHistoryTemplateOk = radioChoosedIndex => {
     const { historyTemplates } = this.state;
-    console.log('index ' + radioChoosedIndex);
     const list = JSON.parse(historyTemplates[radioChoosedIndex].templateParam);
     for (let i = 0; i < list.length; i += 1) {
       list[i].id = i;
@@ -475,7 +464,6 @@ export class ReportEditor extends Component {
   };
 
   handleDeleteTemplate = tmp => {
-    console.log('delete');
     const config = {
       headers: { Authorization: sessionStorage.getItem('token') }
     };
