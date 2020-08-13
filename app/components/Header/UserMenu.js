@@ -31,7 +31,7 @@ class UserMenu extends React.Component {
     openMenu: null
   };
 
-  handleMenu = menu => (event) => {
+  handleMenu = menu => event => {
     const { openMenu } = this.state;
     this.setState({
       openMenu: openMenu === menu ? null : menu,
@@ -52,13 +52,25 @@ class UserMenu extends React.Component {
   render() {
     const { classes, dark } = this.props;
     const { anchorEl, openMenu } = this.state;
+    let name = '';
+    let avatarImage = avatarApi[8];
+    if (sessionStorage.getItem('user')) {
+      const user = JSON.parse(sessionStorage.getItem('user'));
+      name = user.username;
+      if (user.image !== '') {
+        avatarImage = user.image;
+      }
+    }
     return (
       <div>
         <IconButton
           aria-haspopup="true"
           onClick={this.handleMenu('notification')}
           color="inherit"
-          className={classNames(classes.notifIcon, dark ? classes.dark : classes.light)}
+          className={classNames(
+            classes.notifIcon,
+            dark ? classes.dark : classes.light
+          )}
         >
           <Badge className={classes.badge} badgeContent={4} color="secondary">
             <Ionicon icon="ios-notifications-outline" />
@@ -69,17 +81,17 @@ class UserMenu extends React.Component {
           anchorEl={anchorEl}
           anchorOrigin={{
             vertical: 'top',
-            horizontal: 'right',
+            horizontal: 'right'
           }}
           transformOrigin={{
             vertical: 'top',
-            horizontal: 'right',
+            horizontal: 'right'
           }}
           className={classes.notifMenu}
           PaperProps={{
             style: {
-              width: 350,
-            },
+              width: 350
+            }
           }}
           open={openMenu === 'notification'}
           onClose={this.handleClose}
@@ -87,9 +99,12 @@ class UserMenu extends React.Component {
           <MenuItem onClick={this.handleClose}>
             <div className={messageStyles.messageInfo}>
               <ListItemAvatar>
-                <Avatar alt="User Name" src={avatarApi[0]} />
+                <Avatar alt="User Name" src={avatarImage} />
               </ListItemAvatar>
-              <ListItemText primary={dummy.text.subtitle} secondary={dummy.text.date} />
+              <ListItemText
+                primary={dummy.text.subtitle}
+                secondary={dummy.text.date}
+              />
             </div>
           </MenuItem>
           <Divider variant="inset" />
@@ -100,7 +115,11 @@ class UserMenu extends React.Component {
                   <Info />
                 </Avatar>
               </ListItemAvatar>
-              <ListItemText primary={dummy.text.sentences} className={classes.textNotif} secondary={dummy.text.date} />
+              <ListItemText
+                primary={dummy.text.sentences}
+                className={classes.textNotif}
+                secondary={dummy.text.date}
+              />
             </div>
           </MenuItem>
           <Divider variant="inset" />
@@ -111,7 +130,11 @@ class UserMenu extends React.Component {
                   <Check />
                 </Avatar>
               </ListItemAvatar>
-              <ListItemText primary={dummy.text.subtitle} className={classes.textNotif} secondary={dummy.text.date} />
+              <ListItemText
+                primary={dummy.text.subtitle}
+                className={classes.textNotif}
+                secondary={dummy.text.date}
+              />
             </div>
           </MenuItem>
           <Divider variant="inset" />
@@ -122,7 +145,11 @@ class UserMenu extends React.Component {
                   <Warning />
                 </Avatar>
               </ListItemAvatar>
-              <ListItemText primary={dummy.text.subtitle} className={classes.textNotif} secondary={dummy.text.date} />
+              <ListItemText
+                primary={dummy.text.subtitle}
+                className={classes.textNotif}
+                secondary={dummy.text.date}
+              />
             </div>
           </MenuItem>
           <Divider variant="inset" />
@@ -133,36 +160,55 @@ class UserMenu extends React.Component {
                   <Error />
                 </Avatar>
               </ListItemAvatar>
-              <ListItemText primary="Suspendisse pharetra pulvinar sollicitudin. Aenean ut orci eu odio cursus lobortis eget tempus velit. " className={classes.textNotif} secondary="Jan 9, 2016" />
+              <ListItemText
+                primary="Suspendisse pharetra pulvinar sollicitudin. Aenean ut orci eu odio cursus lobortis eget tempus velit. "
+                className={classes.textNotif}
+                secondary="Jan 9, 2016"
+              />
             </div>
           </MenuItem>
         </Menu>
         <Button onClick={this.handleMenu('user-setting')}>
-          <Avatar
-            alt={dummy.user.name}
-            src={dummy.user.avatar}
-          />
+          <Avatar alt={name} src={avatarImage} />
         </Button>
         <Menu
           id="menu-appbar"
           anchorEl={anchorEl}
           anchorOrigin={{
             vertical: 'top',
-            horizontal: 'right',
+            horizontal: 'right'
           }}
           transformOrigin={{
             vertical: 'top',
-            horizontal: 'right',
+            horizontal: 'right'
           }}
           open={openMenu === 'user-setting'}
           onClose={this.handleClose}
         >
-          <MenuItem onClick={this.handleClose} component={Link} to={link.profile}>My Profile</MenuItem>
-          <MenuItem onClick={this.handleClose} component={Link} to={link.calendar}>My Calendar</MenuItem>
+          <MenuItem
+            onClick={this.handleClose}
+            component={Link}
+            to={link.profile}
+          >
+            My Profile
+          </MenuItem>
+          <MenuItem
+            onClick={this.handleClose}
+            component={Link}
+            to={link.calendar}
+          >
+            My Calendar
+          </MenuItem>
           <MenuItem onClick={this.handleClose} component={Link} to={link.email}>
             My Inbox
             <ListItemIcon>
-              <Badge className={classNames(classes.badge, classes.badgeMenu)} badgeContent={2} color="secondary">&nbsp;</Badge>
+              <Badge
+                className={classNames(classes.badge, classes.badgeMenu)}
+                badgeContent={2}
+                color="secondary"
+              >
+                &nbsp;
+              </Badge>
             </ListItemIcon>
           </MenuItem>
           <Divider />
@@ -180,7 +226,7 @@ class UserMenu extends React.Component {
 
 UserMenu.propTypes = {
   classes: PropTypes.object.isRequired,
-  dark: PropTypes.bool,
+  dark: PropTypes.bool
 };
 
 UserMenu.defaultProps = {

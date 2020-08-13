@@ -78,12 +78,10 @@ class CompossedLineBarArea extends Component {
       chart.data = data;
       this.refrechPlots();
       chart.invalidateData();
-      console.log('change data');
     } else if (oldProps.chartParam.axisX !== chartParam.axisX) {
       chart.xAxes.getIndex(0).dataFields.category = chartParam.axisX;
       this.refrechPlots();
       chart.invalidateData();
-      console.log('difference');
     } else if (oldProps.chartParam.title !== chartParam.title) {
       chart.titles.getIndex(0).text = chartParam.title;
     } else if (oldProps.chartParam.xtitle !== chartParam.xtitle) {

@@ -83,9 +83,7 @@ class SimpleBarChart extends Component {
         chart.xAxes.getIndex(0).dataFields.category = chartParam.axisX;
         this.refrechPlots();
         chart.invalidateData();
-        console.log('difference');
       } else if (oldProps.chartParam.title !== chartParam.title) {
-        console.log('change title');
         chart.titles.getIndex(0).text = chartParam.title;
       } else if (oldProps.chartParam.xtitle !== chartParam.xtitle) {
         chart.xAxes.getIndex(0).title.text = chartParam.xtitle;
@@ -97,8 +95,6 @@ class SimpleBarChart extends Component {
         chart.data = data;
         this.refrechPlots();
         chart.invalidateData();
-        console.log('change data');
-        console.log(chart.data);
       } else {
         this.refrechPlots();
       }

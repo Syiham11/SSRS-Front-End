@@ -16,6 +16,7 @@ import styles from './Dashboard-jss';
 import DSHBCharts from './DSHBCharts';
 import TaskMenu from './TaskMenu';
 import NewUserList from './NewUserList';
+import UserList from './UserList';
 
 const apiURL = 'http://localhost:9090/dashboard';
 
@@ -45,8 +46,6 @@ class MainDashboard extends React.Component {
           list.push(obj);
           id += 1;
         });
-        console.log('get charts request');
-        console.log(list);
         setDashboardCharts(list);
       }
     });
@@ -74,6 +73,7 @@ class MainDashboard extends React.Component {
   render() {
     const { classes } = this.props;
     const { time, date } = this.state;
+    const { roles } = JSON.parse(sessionStorage.getItem('user'));
     return (
       <div>
         <Grid container>
@@ -114,7 +114,7 @@ class MainDashboard extends React.Component {
                     color: '#FFF'
                   }}
                 >
-                  12
+                  1
                 </Typography>
                 <Typography
                   variant="subtitle1"
@@ -122,7 +122,7 @@ class MainDashboard extends React.Component {
                     color: '#FFF'
                   }}
                 >
-                  Charts created this month
+                  card description
                 </Typography>
               </div>
               <img
@@ -141,7 +141,7 @@ class MainDashboard extends React.Component {
                     color: '#FFF'
                   }}
                 >
-                  3
+                  2
                 </Typography>
                 <Typography
                   variant="subtitle1"
@@ -149,7 +149,7 @@ class MainDashboard extends React.Component {
                     color: '#FFF'
                   }}
                 >
-                  Reports generated this month
+                  card descriptio
                 </Typography>
               </div>
               <img
@@ -191,7 +191,11 @@ class MainDashboard extends React.Component {
         <DSHBCharts />
         <div style={{ display: 'flex', flexDirection: 'row' }}>
           <TaskMenu style={{ width: '50%', height: '800px' }} />
-          <NewUserList style={{ width: '50%', height: '800px' }} />
+          {roles.includes('ADMIN') ? (
+            <NewUserList style={{ width: '50%', height: '800px' }} />
+          ) : (
+            <UserList style={{ width: '50%', height: '800px' }} />
+          )}
         </div>
       </div>
     );

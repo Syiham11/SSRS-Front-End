@@ -30,15 +30,15 @@ const config = {
 
 export class ChartBlock extends Component {
   state = {
-    fullSize: false,
     isSettings: false,
     tables: []
   };
 
   componentDidMount() {
     const { chartParam } = this.props;
-    if (chartParam.delay !== undefined) {
-      this.intervalID = setInterval(() => this.updateData(), chartParam.delay);
+    if (chartParam.delay !== undefined && chartParam.delay > 0) {
+      const delayInMS = chartParam.delay * 60 * 1000;
+      this.intervalID = setInterval(() => this.updateData(), delayInMS);
     }
     Axios.get(apiURL + '/tables', config).then(response => {
       this.setState({
@@ -80,30 +80,90 @@ export class ChartBlock extends Component {
   updateDelay = delay => {
     clearInterval(this.intervalID);
     if (delay !== undefined && delay > 0) {
-      this.intervalID = setInterval(() => this.updateData(), delay);
+      const delayInMS = delay * 60 * 1000;
+      this.intervalID = setInterval(() => this.updateData(), delayInMS);
     }
   };
 
   updateData = () => {
-    console.log('update');
+    const { chartParam } = this.props;
+    const str = chartParam.choosedColumns;
+    const onlyNumberExp = /^\d+$/;
+    const numberRangeExp = /^\d+;\d+$/;
+    if (onlyNumberExp.test(str)) {
+      const num = parseInt(str, 10);
+      if (num <= 10 && num > 0) {
+        Axios.get(
+          apiURL + '/data/getbyrows/' + chartParam.table + '&' + num,
+          config
+        ).then(response => {
+          this.setTableData(response.data);
+        });
+      }
+    } else if (numberRangeExp.test(str)) {
+      const numList = str.replace(/[{}]/g, '');
+      const list = numList.split(';');
+      const numOfElements = parseInt(list[1], 10) - parseInt(list[0], 10) + 1;
+      if (
+        numOfElements <= 10
+        && numOfElements > 0
+        && parseInt(list[0], 10) < parseInt(list[1], 10)
+      ) {
+        Axios.get(
+          apiURL
+            + '/data/getbyrange/'
+            + chartParam.table
+            + '&'
+            + list[0]
+            + '&'
+            + list[1],
+          config
+        ).then(response => {
+          this.setTableData(response.data);
+        });
+      }
+    }
+  };
+
+  setTableData = data => {
+    const { charts, setDashboardCharts, id } = this.props;
+    const chartList = JSON.parse(JSON.stringify(charts));
+    chartList[id].settings.data = data;
+
+    const list = [];
+    chartList.forEach(chart => {
+      const obj2 = {
+        settings: JSON.stringify(chart.settings)
+      };
+      list.push(obj2);
+    });
+    const obj = {
+      lastEditTime: new Date()
+    };
+    const items = [obj, list];
+    const { sub } = JSON.parse(sessionStorage.getItem('user'));
+
+    Axios.post('http://localhost:9090/dashboard/save&' + sub, items, config)
+      .then(response => {
+        console.log(response.data);
+      })
+      .catch(error => {
+        console.log(error.message);
+      });
+    setDashboardCharts(chartList);
   };
 
   handleDeleteChart = () => {
     const { id, charts } = this.props;
-    console.log('delete ' + id);
-    console.log(charts);
-    const list = [0, 1, 2, 3];
     let newCharts = [];
-    if (id === 0) {
-      console.log(list.splice(1, list.length));
+    if (charts.length === 1) {
+      newCharts = [];
+    } else if (id === 0) {
       newCharts = charts.splice(1, charts.length);
-      console.log(newCharts);
     } else {
-      console.log(list.splice(0, id).concat(list.splice(id, list.length)));
       newCharts = charts.splice(0, id).concat(charts.splice(id, charts.length));
-      console.log(newCharts);
     }
-    console.log(newCharts);
+
     this.updateDashboard(newCharts);
   };
 
@@ -121,7 +181,6 @@ export class ChartBlock extends Component {
     };
     const items = [obj, list];
     const { sub } = JSON.parse(sessionStorage.getItem('user'));
-
     Axios.post('http://localhost:9090/dashboard/save&' + sub, items, config)
       .then(response => {
         console.log(response.data);
@@ -146,10 +205,8 @@ export class ChartBlock extends Component {
 
   handleChangeChart = () => {
     const {
-      id, choosedChart, data, axisList, chartParam, chart
+      id, choosedChart, data, axisList, chartParam
     } = this.props;
-    console.log(id);
-    console.log(chart);
     switch (choosedChart) {
       case 'Compossed Chart':
         return (
@@ -259,9 +316,8 @@ export class ChartBlock extends Component {
   };
 
   render() {
-    const { fullSize, isSettings, tables } = this.state;
+    const { isSettings, tables } = this.state;
     const { classes, id } = this.props;
-    console.log(fullSize);
     return (
       <div>
         <Dialog
@@ -316,7 +372,6 @@ ChartBlock.propTypes = {
   axisList: PropTypes.array.isRequired,
   chartParam: PropTypes.object.isRequired,
   setDashboardCharts: PropTypes.func.isRequired,
-  chart: PropTypes.object.isRequired,
   charts: PropTypes.array.isRequired
 };
 
@@ -327,7 +382,6 @@ const mapStateToProps = (state, ownProps) => ({
   axisList: state.get('dashboard').toJS().charts[ownProps.id].settings.axisList,
   chartParam: state.get('dashboard').toJS().charts[ownProps.id].settings
     .chartParam,
-  chart: state.get('dashboard').toJS().charts[ownProps.id],
   charts: state.get('dashboard').toJS().charts
 });
 

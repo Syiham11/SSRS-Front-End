@@ -8,8 +8,8 @@ import { NavLink } from 'react-router-dom';
 // import MenuItem from '@material-ui/core/MenuItem';
 import Avatar from '@material-ui/core/Avatar';
 import brand from 'dan-api/dummy/brand';
-import dummy from 'dan-api/dummy/dummyContents';
 import logo from 'dan-images/logo.svg';
+import avatarApi from 'dan-api/images/avatars';
 import MainMenu from './MainMenu';
 import styles from './sidebar-jss';
 
@@ -67,8 +67,13 @@ class SidebarContent extends React.Component {
       }
     }; */
     let name = '';
-    if (localStorage.getItem('user')) {
-      name = JSON.parse(localStorage.getItem('user')).username;
+    let avatarImage = avatarApi[8];
+    if (sessionStorage.getItem('user')) {
+      const user = JSON.parse(sessionStorage.getItem('user'));
+      name = user.username;
+      if (user.image !== '') {
+        avatarImage = user.image;
+      }
     }
 
     return (
@@ -100,7 +105,7 @@ class SidebarContent extends React.Component {
             >
               <Avatar
                 alt={name}
-                src={dummy.user.avatar}
+                src={avatarImage}
                 className={classNames(classes.avatar, classes.bigAvatar)}
               />
               <div>
