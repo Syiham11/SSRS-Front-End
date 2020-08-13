@@ -3,55 +3,72 @@ import {
   withStyles,
   Paper,
   Typography,
-  Button,
   Avatar,
-  Icon,
   DialogContent,
-  Dialog
+  Dialog,
+  Tooltip,
+  IconButton
 } from '@material-ui/core';
+import VisibilityIcon from '@material-ui/icons/Visibility';
 import Axios from 'axios';
 import avatarApi from 'dan-api/images/avatars';
 import ListItemAvatar from '@material-ui/core/ListItemAvatar';
 import PropTypes from 'prop-types';
+// import InfiniteScroll from 'react-infinite-scroller';
 import styles from './Dashboard-jss';
 import PapperBlock from '../../../components/PapperBlock/PapperBlock';
 import UserProfile from '../UserProfile';
 
 const apiURL = 'http://localhost:9090';
 
-class NewUserList extends Component {
+const config = {
+  headers: { Authorization: sessionStorage.getItem('token') }
+};
+
+class UserList extends Component {
   state = {
     users: [],
     userIndex: -1,
     isViewProfile: false
+    // lastIndex: 10,
+    // hasNext: true
   };
 
   componentDidMount() {
-    this.updateUsersList();
-  }
-
-  updateUsersList = () => {
-    const config = {
-      headers: { Authorization: sessionStorage.getItem('token') }
-    };
-    Axios.get(apiURL + '/administration/getAllDeactivatedUsers', config).then(
+    Axios.get(apiURL + '/getUsersByRange/' + 0 + '&' + 50, config).then(
       response => {
+        /* if (response.data < 10) {
+          this.setState({
+            users: response.data,
+            hasNext: false
+          });
+        } else {
+          this.setState({
+            users: response.data
+          });
+        } */
+
         this.setState({
           users: response.data
         });
       }
     );
-  };
+  }
 
-  activateUser = index => {
-    const { users } = this.state;
-    const config = {
-      headers: { Authorization: sessionStorage.getItem('token') }
-    };
-    users[index].activated = true;
-    Axios.post(apiURL + '/updateUser', users[index], config).then(() => {
-      this.updateUsersList();
-    });
+  fetchMoreData = () => {
+    const { lastIndex, users, hasNext } = this.state;
+    const newIndex = lastIndex + 1;
+    if (hasNext) {
+      Axios.get(apiURL + '/getUsersByRange/' + newIndex + '&' + 4, config).then(
+        response => {
+          console.log(response.data);
+          this.setState({
+            users: users.concat(response.data),
+            lastIndex: lastIndex + 10
+          });
+        }
+      );
+    }
   };
 
   handleViewProfile = index => {
@@ -69,11 +86,15 @@ class NewUserList extends Component {
 
   render() {
     const { classes } = this.props;
-    const { users, userIndex, isViewProfile } = this.state;
+    const {
+      users,
+      userIndex,
+      isViewProfile // hasNext
+    } = this.state;
     return (
       <div
         style={{
-          height: '100%',
+          height: '50%',
           width: '50%',
           margin: '10px 10px 10px 10px'
         }}
@@ -98,12 +119,18 @@ class NewUserList extends Component {
           </DialogContent>
         </Dialog>
         <PapperBlock
-          title="New Users"
+          title="System users"
           whiteBg
-          icon="ios-person-add"
+          icon="ios-person"
           desc="New users account needs to be approuved"
         >
           <Paper className={classes.taskInnerDiv}>
+            {/* <InfiniteScroll
+              pageStart={0}
+              loadMore={this.fetchMoreData}
+              hasMore={hasNext}
+              loader={<h4>Loading...</h4>}
+            > */}
             {users.map((user, index) => (
               <div
                 className={classes.divSpace}
@@ -112,7 +139,10 @@ class NewUserList extends Component {
                 <div className={classes.divInline}>
                   <div>
                     <ListItemAvatar>
-                      <Avatar alt="User Name" src={avatarApi[8]} />
+                      <Avatar
+                        alt="User Name"
+                        src={user.image === '' ? avatarApi[8] : user.image}
+                      />
                     </ListItemAvatar>
                   </div>
                   <div>
@@ -120,7 +150,6 @@ class NewUserList extends Component {
                       id={'title' + index}
                       variant="body1"
                       gutterBottom
-                      onClick={() => this.handleViewProfile(index)}
                     >
                       {user.username}
                     </Typography>
@@ -134,21 +163,19 @@ class NewUserList extends Component {
                   </div>
                 </div>
                 <div>
-                  <Button
-                    variant="contained"
-                    endIcon={<Icon>done</Icon>}
-                    style={{
-                      backgroundColor: '#5EBA7D',
-                      fontSize: '12px',
-                      color: 'white'
-                    }}
-                    onClick={() => this.activateUser(index)}
-                  >
-                    Approuve
-                  </Button>
+                  <Tooltip title="View profile">
+                    <IconButton
+                      aria-label="viewProfile"
+                      className={classes.margin}
+                      onClick={() => this.handleViewProfile(index)}
+                    >
+                      <VisibilityIcon />
+                    </IconButton>
+                  </Tooltip>
                 </div>
               </div>
             ))}
+            {/* </InfiniteScroll> */}
           </Paper>
         </PapperBlock>
       </div>
@@ -156,8 +183,8 @@ class NewUserList extends Component {
   }
 }
 
-NewUserList.propTypes = {
+UserList.propTypes = {
   classes: PropTypes.object.isRequired
 };
 
-export default withStyles(styles)(NewUserList);
+export default withStyles(styles)(UserList);

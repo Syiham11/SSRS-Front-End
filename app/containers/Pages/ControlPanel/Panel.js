@@ -13,15 +13,24 @@ import {
   MenuItem,
   IconButton,
   TextField,
-  InputAdornment
+  InputAdornment,
+  Tooltip,
+  Dialog,
+  DialogContent
 } from '@material-ui/core';
 import SearchIcon from '@material-ui/icons/Search';
 import DeleteIcon from '@material-ui/icons/Delete';
+import VisibilityIcon from '@material-ui/icons/Visibility';
 import TablePaginationActions from '../Table/TablePaginationActions';
 import styles from '../Import/import-jss';
 import EnhancedTableHead from '../Table/EnhancedTableHead';
+import UserProfile from '../UserProfile';
 
 const apiURL = 'http://localhost:9090';
+
+const config = {
+  headers: { Authorization: sessionStorage.getItem('token') }
+};
 
 export class Panel extends Component {
   state = {
@@ -30,7 +39,9 @@ export class Panel extends Component {
     rowsPerPage: 10,
     order: 'asc',
     orderBy: 'Username',
-    filter: ''
+    filter: '',
+    userIndex: -1,
+    isViewProfile: false
   };
 
   componentDidMount() {
@@ -84,9 +95,6 @@ export class Panel extends Component {
   };
 
   updateUsersList = () => {
-    const config = {
-      headers: { Authorization: sessionStorage.getItem('token') }
-    };
     Axios.get(apiURL + '/administration/getAllUser', config).then(response => {
       this.setState({
         users: response.data
@@ -95,18 +103,12 @@ export class Panel extends Component {
   };
 
   handleDeleteUser = user => {
-    const config = {
-      headers: { Authorization: sessionStorage.getItem('token') }
-    };
     Axios.post(apiURL + '/deleteUser', user, config).then(() => {
       this.updateUsersList();
     });
   };
 
   handleActivationChange = user => {
-    const config = {
-      headers: { Authorization: sessionStorage.getItem('token') }
-    };
     user.activated = !user.activated;
     Axios.post(apiURL + '/updateUser', user, config).then(() => {
       this.updateUsersList();
@@ -114,9 +116,6 @@ export class Panel extends Component {
   };
 
   handleRoleChange = (user, e) => {
-    const config = {
-      headers: { Authorization: sessionStorage.getItem('token') }
-    };
     Axios.post(
       apiURL + '/administration/updateUserRole/' + e.target.value,
       user,
@@ -135,10 +134,30 @@ export class Panel extends Component {
     this.setState({ filter: event.target.value });
   };
 
+  handleViewProfile = index => {
+    this.setState({
+      userIndex: index,
+      isViewProfile: true
+    });
+  };
+
+  handleCloseDialog = () => {
+    this.setState({
+      isViewProfile: false
+    });
+  };
+
   render() {
     const { classes } = this.props;
     const {
-      users, page, rowsPerPage, order, orderBy, filter
+      users,
+      page,
+      rowsPerPage,
+      order,
+      orderBy,
+      filter,
+      userIndex,
+      isViewProfile
     } = this.state;
     const lowercasedFilter = filter.toLowerCase();
     const filteredData = users.filter(item => Object.keys(item).some(key => JSON.stringify(item[key])
@@ -180,6 +199,25 @@ export class Panel extends Component {
     ];
     return (
       <div>
+        <Dialog
+          maxWidth="xl"
+          fullWidth
+          aria-labelledby="changeProfilePic"
+          open={isViewProfile}
+          onClose={this.handleCloseDialog}
+          classes={{
+            paper: classes.paper
+          }}
+          PaperProps={{
+            classes: {
+              root: classes.paperColor
+            }
+          }}
+        >
+          <DialogContent>
+            <UserProfile user={users[userIndex]} />
+          </DialogContent>
+        </Dialog>
         <TextField
           id="input-with-icon-textfield"
           type="search"
@@ -202,12 +240,12 @@ export class Panel extends Component {
             orderBy={orderBy}
             onRequestSort={this.handleRequestSort}
             headCells={headCells}
-            emptyCells={1}
+            emptyCells={2}
           />
           <TableBody>
             {this.stableSort(filteredData, this.getComparator(order, orderBy))
               .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-              .map(row => (
+              .map((row, index) => (
                 <TableRow key={row.name}>
                   <TableCell component="th" scope="row">
                     {row.username}
@@ -260,13 +298,26 @@ export class Panel extends Component {
                     {this.formatDate(row.creationTime)}
                   </TableCell>
                   <TableCell align="left">
-                    <IconButton
-                      aria-label="delete"
-                      className={classes.margin}
-                      onClick={() => this.handleDeleteUser(row)}
-                    >
-                      <DeleteIcon />
-                    </IconButton>
+                    <Tooltip title="View profile">
+                      <IconButton
+                        aria-label="viewProfile"
+                        className={classes.margin}
+                        onClick={() => this.handleViewProfile(index)}
+                      >
+                        <VisibilityIcon />
+                      </IconButton>
+                    </Tooltip>
+                  </TableCell>
+                  <TableCell align="left">
+                    <Tooltip title="Delete account">
+                      <IconButton
+                        aria-label="delete"
+                        className={classes.margin}
+                        onClick={() => this.handleDeleteUser(row)}
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </Tooltip>
                   </TableCell>
                 </TableRow>
               ))}

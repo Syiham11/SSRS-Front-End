@@ -183,6 +183,9 @@ const styles = theme => ({
         outline: 0
       }
     }
+  },
+  paperColor: {
+    backgroundColor: '#FAFAFA'
   }
 });
 

@@ -5,6 +5,10 @@ export const MainDashboard = Loadable({
   loader: () => import('./Pages/MainDashboard'),
   loading: Loading,
 });
+export const Profile = Loadable({
+  loader: () => import('./Pages/MyProfile'),
+  loading: Loading,
+});
 export const ControlPanel = Loadable({
   loader: () => import('./Pages/ControlPanel'),
   loading: Loading,

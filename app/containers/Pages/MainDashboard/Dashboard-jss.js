@@ -67,6 +67,9 @@ const styles = theme => ({
     flexDirection: 'row',
     justifyContent: 'flex-start',
     alignItems: 'center'
+  },
+  paperColor: {
+    backgroundColor: '#FAFAFA'
   }
 });
 

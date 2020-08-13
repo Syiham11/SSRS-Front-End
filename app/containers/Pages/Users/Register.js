@@ -21,6 +21,7 @@ class Register extends React.Component {
       username: values.toJS().username,
       email: values.toJS().email,
       password: values.toJS().password,
+      image: '',
       creationTime: new Date()
     };
     register(user);

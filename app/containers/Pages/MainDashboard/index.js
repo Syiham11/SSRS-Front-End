@@ -16,6 +16,7 @@ import styles from './Dashboard-jss';
 import DSHBCharts from './DSHBCharts';
 import TaskMenu from './TaskMenu';
 import NewUserList from './NewUserList';
+import UserList from './UserList';
 
 const apiURL = 'http://localhost:9090/dashboard';
 
@@ -193,7 +194,7 @@ class MainDashboard extends React.Component {
           {roles.includes('ADMIN') ? (
             <NewUserList style={{ width: '50%', height: '800px' }} />
           ) : (
-            <div />
+            <UserList style={{ width: '50%', height: '800px' }} />
           )}
         </div>
       </div>

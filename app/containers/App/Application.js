@@ -11,7 +11,8 @@ import {
   Form,
   Table,
   Error,
-  NotFound
+  NotFound,
+  Profile
 } from '../pageListAsync';
 import PrivateRoute from './PrivateRoute';
 
@@ -31,6 +32,12 @@ class Application extends React.Component {
           <PrivateRoute exact path="/app" component={MainDashboard} />
           <PrivateRoute
             exact
+            path="/app/profile"
+            component={Profile}
+            roleTypes={roles1}
+          />
+          <PrivateRoute
+            exact
             path="/app/import"
             component={Import}
             roleTypes={roles1}
@@ -46,11 +53,7 @@ class Application extends React.Component {
             component={ControlPanel}
             roleTypes={roles3}
           />
-          <PrivateRoute
-            path="/app/form"
-            component={Form}
-            roleTypes={roles2}
-          />
+          <PrivateRoute path="/app/form" component={Form} roleTypes={roles2} />
           <PrivateRoute
             path="/app/table"
             component={Table}

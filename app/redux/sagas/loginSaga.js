@@ -19,20 +19,30 @@ function* workerSaga(action) {
   try {
     const payload = yield call(login, action.user);
     const token = payload.headers.authorization;
-    const jwtdecoded = jwtDecode(token);
+    let jwtdecoded = jwtDecode(token);
+    console.log(jwtdecoded.id);
     if (jwtdecoded.activated) {
-      if (action.isRemember) {
-        localStorage.setItem('token', token);
-        localStorage.setItem('user', JSON.stringify(jwtdecoded));
-      }
-      sessionStorage.setItem('token', token);
-      sessionStorage.setItem('user', JSON.stringify(jwtdecoded));
       yield put({
         type: LOGIN_SUCCEEDED,
         authData: { accessToken: token, authorization: jwtdecoded },
         isConnected: true
       });
-      history.push('/App');
+      Axios.get(
+        'http://localhost:9090/user/getProfileImage/' + jwtdecoded.id
+      ).then(response => {
+        jwtdecoded = {
+          ...jwtdecoded,
+          image: response.data
+        };
+        console.log(response.data);
+        if (action.isRemember) {
+          localStorage.setItem('token', token);
+          localStorage.setItem('user', JSON.stringify(jwtdecoded));
+        }
+        sessionStorage.setItem('token', token);
+        sessionStorage.setItem('user', JSON.stringify(jwtdecoded));
+        history.push('/App');
+      });
     } else {
       yield put({
         type: LOGIN_FAILED,
