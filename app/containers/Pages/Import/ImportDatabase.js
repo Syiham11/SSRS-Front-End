@@ -28,9 +28,10 @@ import {
 } from 'dan-actions/importedDataActions';
 import Visibility from '@material-ui/icons/Visibility';
 import VisibilityOff from '@material-ui/icons/VisibilityOff';
-import axios from 'axios';
 import DoneOutlinedIcon from '@material-ui/icons/DoneOutlined';
 import PropTypes from 'prop-types';
+import axios from 'axios';
+import ImportServices from '../../Services/import';
 import ListDialog from './ListDialog';
 import styles from './import-jss';
 
@@ -95,11 +96,7 @@ class ImportDatabase extends Component {
       port,
       databaseName
     };
-    const config = {
-      headers: { Authorization: sessionStorage.getItem('token') }
-    };
-    axios
-      .post(apiURL + '/testconnection', connectionParam, config)
+    ImportServices.testConnection(connectionParam)
       .then(response => {
         if (response.data) {
           this.setState({
@@ -133,25 +130,21 @@ class ImportDatabase extends Component {
 
   handleConnect = () => {
     const {
-      username, password, host, port, databaseName
+      username, password, host, port, databaseName, selectedDatabaseType
     } = this.state;
     this.setState({
       isSpinnerShowed: true
     });
     const connectionParam = {
       userId: '1',
-      type: 'SQLServer',
+      type: selectedDatabaseType,
       username,
       password,
       host,
       port,
       databaseName
     };
-    const config = {
-      headers: { Authorization: sessionStorage.getItem('token') }
-    };
-    axios
-      .post(apiURL + '/testconnection', connectionParam, config)
+    ImportServices.testConnection(connectionParam)
       .then(response => {
         if (response.data) {
           this.setListTables(connectionParam);
@@ -173,10 +166,7 @@ class ImportDatabase extends Component {
   };
 
   setListTables = connectionParam => {
-    const config = {
-      headers: { Authorization: sessionStorage.getItem('token') }
-    };
-    axios.post(apiURL + '/tables', connectionParam, config).then(response => {
+    ImportServices.getTables(connectionParam).then(response => {
       this.setState({
         listTables: response.data
       });
@@ -202,28 +192,34 @@ class ImportDatabase extends Component {
       password,
       host,
       port,
-      databaseName
+      databaseName,
+      selectedDatabaseType
     } = this.state;
     this.setState({
       isImport: true
     });
     const connectionParam = {
       userId: '1',
-      type: 'SQLServer',
+      type: selectedDatabaseType,
       username,
       password,
       host,
       port,
       databaseName
     };
-    const config = {
-      headers: { Authorization: sessionStorage.getItem('token') }
-    };
-    axios
-      .post(apiURL + '/tables/' + selectedTable, connectionParam, config)
+    ImportServices.getData(selectedTable, connectionParam)
       .then(response => {
-        setTableData(response.data);
-        setTableOriginalData(response.data);
+        const data = [];
+        response.data.forEach((da) => {
+          const dt = da;
+          if (dt._id) {
+            delete dt._id;
+          }
+          data.push(dt);
+        });
+        console.log(response);
+        setTableData(data);
+        setTableOriginalData(data);
         setTableName(selectedTable);
         setTimeout(() => {
           this.setState({

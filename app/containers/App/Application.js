@@ -11,7 +11,9 @@ import {
   Form,
   Table,
   Error,
-  NotFound
+  NotFound,
+  AlgorithmPage,
+  AlgorithmHomePage
 } from '../pageListAsync';
 import PrivateRoute from './PrivateRoute';
 
@@ -45,6 +47,18 @@ class Application extends React.Component {
             path="/app/control"
             component={ControlPanel}
             roleTypes={roles3}
+          />
+          <PrivateRoute
+            exact
+            path="/app/algorithms-home"
+            component={AlgorithmHomePage}
+            roleTypes={roles1}
+          />
+          <PrivateRoute
+            exact
+            path="/app/algorithms"
+            component={AlgorithmPage}
+            roleTypes={roles1}
           />
           <PrivateRoute
             path="/app/form"
