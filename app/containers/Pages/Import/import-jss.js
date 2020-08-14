@@ -104,6 +104,19 @@ const styles = theme => ({
       background: theme.palette.secondary.main
     }
   },
+  buttonAlgo: {
+    background: theme.palette.primary.main,
+    boxShadow: '0 3px 5px 2px rgba(0, 0, 0, .3)',
+    color: 'white',
+    height: 40,
+    width: '45%',
+    margin: theme.spacing(2),
+    fontSize: '13px',
+    padding: '0 30px',
+    '&:hover': {
+      background: theme.palette.secondary.main
+    }
+  },
   buttonWithoutWidth: {
     background: theme.palette.primary.main,
     boxShadow: '0 3px 5px 2px rgba(0, 0, 0, .3)',
@@ -186,6 +199,10 @@ const styles = theme => ({
   },
   paperColor: {
     backgroundColor: '#FAFAFA'
+  },
+  formControlAlgo: {
+    marginLeft: theme.spacing(2),
+    marginRight: theme.spacing(2),
   }
 });
 
