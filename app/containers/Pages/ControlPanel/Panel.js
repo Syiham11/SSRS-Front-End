@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import Axios from 'axios';
 import PropTypes from 'prop-types';
 import {
   Table,
@@ -24,13 +23,8 @@ import VisibilityIcon from '@material-ui/icons/Visibility';
 import TablePaginationActions from '../Table/TablePaginationActions';
 import styles from '../Import/import-jss';
 import EnhancedTableHead from '../Table/EnhancedTableHead';
+import UserServices from '../../Services/user';
 import UserProfile from '../UserProfile';
-
-const apiURL = 'http://localhost:9090';
-
-const config = {
-  headers: { Authorization: sessionStorage.getItem('token') }
-};
 
 export class Panel extends Component {
   state = {
@@ -95,7 +89,7 @@ export class Panel extends Component {
   };
 
   updateUsersList = () => {
-    Axios.get(apiURL + '/administration/getAllUser', config).then(response => {
+    UserServices.getAll().then(response => {
       this.setState({
         users: response.data
       });
@@ -103,24 +97,20 @@ export class Panel extends Component {
   };
 
   handleDeleteUser = user => {
-    Axios.post(apiURL + '/deleteUser', user, config).then(() => {
+    UserServices.delete(user).then(() => {
       this.updateUsersList();
     });
   };
 
   handleActivationChange = user => {
     user.activated = !user.activated;
-    Axios.post(apiURL + '/updateUser', user, config).then(() => {
+    UserServices.update(user).then(() => {
       this.updateUsersList();
     });
   };
 
   handleRoleChange = (user, e) => {
-    Axios.post(
-      apiURL + '/administration/updateUserRole/' + e.target.value,
-      user,
-      config
-    ).then(() => {
+    UserServices.updateRole(user, e.target.value).then(() => {
       this.updateUsersList();
     });
   };

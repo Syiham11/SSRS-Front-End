@@ -13,8 +13,8 @@ import {
 import Ionicon from 'react-ionicons';
 import PropTypes from 'prop-types';
 import AddCircleOutlineIcon from '@material-ui/icons/AddCircleOutline';
-import Axios from 'axios';
 import ChartBlock from './ChartBlock';
+import WorkspaceServices from '../../Services/workspace';
 
 const styles = theme => ({
   globalArea: {
@@ -207,24 +207,10 @@ class VisualizationBlock extends Component {
       list.push(obj2);
     });
     const items = [obj, list];
-    const { sub } = JSON.parse(sessionStorage.getItem('user'));
-    const config = {
-      headers: { Authorization: sessionStorage.getItem('token') }
-    };
-    Axios.get(
-      'http://localhost:9090/workspace/checkExistence/'
-        + workspaceTitle
-        + '&'
-        + sub,
-      config
-    )
+    WorkspaceServices.checkExistance(workspaceTitle)
       .then(response => {
         if (!response.data) {
-          Axios.post(
-            'http://localhost:9090/workspace/save&' + sub,
-            items,
-            config
-          )
+          WorkspaceServices.save(items)
             .then(response2 => {
               console.log(response2.data);
             })
@@ -233,7 +219,7 @@ class VisualizationBlock extends Component {
             });
         } else {
           const items2 = [obj, list];
-          Axios.post('http://localhost:9090/workspace/update', items2, config)
+          WorkspaceServices.update(items2)
             .then(response2 => {
               console.log(response2.data);
             })

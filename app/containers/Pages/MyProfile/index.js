@@ -14,13 +14,13 @@ import {
   Typography,
   Tooltip
 } from '@material-ui/core';
-import Axios from 'axios';
 import avatarApi from 'dan-api/images/avatars';
 import ProfilePicture from 'profile-picture';
 import EditRoundedIcon from '@material-ui/icons/EditRounded';
 import 'profile-picture/build/ProfilePicture.css';
 import parallaxPetal from 'dan-images/decoration/parallaxPetal11.png';
 import AboutMe from './AboutMe';
+import UserServices from '../../Services/user';
 
 const styles = theme => ({
   root: {
@@ -86,12 +86,6 @@ const SmallAvatar = withStyles(theme => ({
   }
 }))(Avatar);
 
-const apiURL = 'http://localhost:9090';
-
-const config = {
-  headers: { Authorization: sessionStorage.getItem('token') }
-};
-
 export class MyProfile extends Component {
   state = {
     user: {},
@@ -102,18 +96,16 @@ export class MyProfile extends Component {
 
   componentDidMount() {
     const sessionUser = JSON.parse(sessionStorage.getItem('user'));
-    Axios.get(apiURL + '/getuserdata/' + sessionUser.id, config).then(
-      response => {
-        const user = response.data;
-        if (user.image === '') {
-          const avatarImage = avatarApi[8];
-          user.image = avatarImage;
-        }
-        this.setState({
-          user
-        });
+    UserServices.getUserData(sessionUser.id).then(response => {
+      const user = response.data;
+      if (user.image === '') {
+        const avatarImage = avatarApi[8];
+        user.image = avatarImage;
       }
-    );
+      this.setState({
+        user
+      });
+    });
   }
 
   handleUpload = () => {
@@ -127,7 +119,7 @@ export class MyProfile extends Component {
     if (sessionStorage.getItem('user')) {
       user.image = imageAsDataURL;
       console.log(user);
-      Axios.post(apiURL + '/updateUser', user, config).then(() => {
+      UserServices.update(user).then(() => {
         this.setState({
           user
         });

@@ -24,8 +24,8 @@ import ExpandLessOutlinedIcon from '@material-ui/icons/ExpandLessOutlined';
 import AddCircleOutlineIcon from '@material-ui/icons/AddCircleOutline';
 import HighlightOffIcon from '@material-ui/icons/HighlightOff';
 import { ChromePicker } from 'react-color';
-import Axios from 'axios';
 import ChartTypesList from 'dan-components/Charts/ChartTypesList';
+import DatawarehouseServices from '../../Services/datawarehouse';
 import styles from '../Import/import-jss';
 
 const types = [
@@ -33,11 +33,6 @@ const types = [
   { id: 'bar', name: 'bar' },
   { id: 'line', name: 'line' }
 ];
-
-const apiURL = 'http://localhost:9090/datawarehouse';
-const config = {
-  headers: { Authorization: sessionStorage.getItem('token') }
-};
 
 class ChartSettings extends Component {
   state = {
@@ -205,16 +200,14 @@ class ChartSettings extends Component {
     const {
       charts, setWorkspaceCharts, chartId, chartParam
     } = this.props;
+    const tableName = e.target.value;
     const param = {
       ...chartParam,
-      table: e.target.value
+      table: tableName
     };
     const chartList = JSON.parse(JSON.stringify(charts));
     chartList[chartId].settings.chartParam = param;
-    Axios.get(
-      apiURL + '/data/getbyrows/' + e.target.value + '&' + 1,
-      config
-    ).then(response => {
+    DatawarehouseServices.getDataByRows(tableName, 1).then(response => {
       let keys = [];
       if (response.data[0] !== undefined) {
         keys = Object.keys(response.data[0]);
@@ -367,12 +360,11 @@ class ChartSettings extends Component {
     if (onlyNumberExp.test(str)) {
       const num = parseInt(str, 10);
       if (num <= 10 && num > 0) {
-        Axios.get(
-          apiURL + '/data/getbyrows/' + chartParam.table + '&' + num,
-          config
-        ).then(response => {
-          this.setTableData(response.data, columns);
-        });
+        DatawarehouseServices.getDataByRows(chartParam.table, num).then(
+          response => {
+            this.setTableData(response.data, columns);
+          }
+        );
       }
     } else if (numberRangeExp.test(str)) {
       const numList = str.replace(/[{}]/g, '');
@@ -383,15 +375,10 @@ class ChartSettings extends Component {
         && numOfElements > 0
         && parseInt(list[0], 10) < parseInt(list[1], 10)
       ) {
-        Axios.get(
-          apiURL
-            + '/data/getbyrange/'
-            + chartParam.table
-            + '&'
-            + list[0]
-            + '&'
-            + list[1],
-          config
+        DatawarehouseServices.getDataByRange(
+          chartParam.table,
+          list[0],
+          list[1]
         ).then(response => {
           this.setTableData(response.data, columns);
         });

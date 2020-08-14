@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import Axios from 'axios';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { setTitle, setCharts } from 'dan-actions/workspaceActions';
@@ -15,8 +14,7 @@ import {
   TableRow,
   IconButton
 } from '@material-ui/core';
-
-const apiURL = 'http://localhost:9090/workspace';
+import WorkspaceServices from '../../Services/workspace';
 
 class WorkspaceList extends Component {
   state = {
@@ -28,11 +26,7 @@ class WorkspaceList extends Component {
   }
 
   updateWorkspacesList = () => {
-    const { sub } = JSON.parse(sessionStorage.getItem('user'));
-    const config = {
-      headers: { Authorization: sessionStorage.getItem('token') }
-    };
-    Axios.get(apiURL + '/getAll&' + sub, config).then(response => {
+    WorkspaceServices.getAll().then(response => {
       this.setState({
         workspaces: response.data
       });
@@ -42,10 +36,7 @@ class WorkspaceList extends Component {
   handleOpenWorkspace = (workspaceId, index) => {
     const { setWorkspaceCharts, setWorkspaceTitle, handleSetType } = this.props;
     const { workspaces } = this.state;
-    const config = {
-      headers: { Authorization: sessionStorage.getItem('token') }
-    };
-    Axios.get(apiURL + '/' + workspaceId + '/charts', config).then(response => {
+    WorkspaceServices.getCharts(workspaceId).then(response => {
       const list = [];
       const array = response.data;
       let id = 0;
@@ -64,10 +55,7 @@ class WorkspaceList extends Component {
   };
 
   handleDeleteWorkspace = workspace => {
-    const config = {
-      headers: { Authorization: sessionStorage.getItem('token') }
-    };
-    Axios.post(apiURL + '/delete', workspace, config).then(() => {
+    WorkspaceServices.delete(workspace).then(() => {
       this.updateWorkspacesList();
     });
   };

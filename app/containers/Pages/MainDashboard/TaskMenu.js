@@ -13,7 +13,6 @@ import {
   TextField,
   Button
 } from '@material-ui/core';
-import Axios from 'axios';
 import EditIcon from '@material-ui/icons/Edit';
 import BackspaceIcon from '@material-ui/icons/Backspace';
 import AddBoxIcon from '@material-ui/icons/AddBox';
@@ -21,6 +20,7 @@ import { green } from '@material-ui/core/colors';
 import PropTypes from 'prop-types';
 import styles from './Dashboard-jss';
 import PapperBlock from '../../../components/PapperBlock/PapperBlock';
+import TaskServices from '../../Services/task';
 
 const GreenCheckbox = withStyles({
   root: {
@@ -31,12 +31,6 @@ const GreenCheckbox = withStyles({
   },
   checked: {}
 })(props => <Checkbox color="default" {...props} />);
-
-const apiURL = 'http://localhost:9090/task';
-const { sub } = JSON.parse(sessionStorage.getItem('user'));
-const config = {
-  headers: { Authorization: sessionStorage.getItem('token') }
-};
 
 class TaskMenu extends Component {
   state = {
@@ -52,7 +46,7 @@ class TaskMenu extends Component {
   }
 
   updateTasksList = () => {
-    Axios.get(apiURL + '/getAll&' + sub, config).then(response => {
+    TaskServices.getAll().then(response => {
       this.setState({
         tasks: response.data
       });
@@ -62,9 +56,7 @@ class TaskMenu extends Component {
   handleCheckTask = (e, index) => {
     const { tasks } = this.state;
     tasks[index].done = e.target.checked;
-    Axios.post(apiURL + '/update', tasks[index], config).then(response => {
-      console.log(response.data);
-    });
+    TaskServices.update(tasks[index]);
   };
 
   handleAddTask = () => {
@@ -74,7 +66,7 @@ class TaskMenu extends Component {
       done: false,
       creationTime: new Date()
     };
-    Axios.post(apiURL + '/add&' + sub, task, config).then(response => {
+    TaskServices.add(task).then(response => {
       console.log(response.data);
       this.updateTasksList();
     });
@@ -82,7 +74,7 @@ class TaskMenu extends Component {
 
   handleDeleteTask = index => {
     const { tasks } = this.state;
-    Axios.post(apiURL + '/delete', tasks[index], config).then(response => {
+    TaskServices.delete(tasks[index]).then(response => {
       console.log(response.data);
       this.updateTasksList();
     });
@@ -113,12 +105,10 @@ class TaskMenu extends Component {
     } = this.state;
     tasks[editableTaskIndex].title = editableTitle;
     tasks[editableTaskIndex].description = editableDescription;
-    Axios.post(apiURL + '/update', tasks[editableTaskIndex], config).then(
-      response => {
-        console.log(response.data);
-        this.handleDialogClose();
-      }
-    );
+    TaskServices.update(tasks[editableTaskIndex]).then(response => {
+      console.log(response.data);
+      this.handleDialogClose();
+    });
   };
 
   handleTitleChange = e => {

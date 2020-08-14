@@ -30,7 +30,6 @@ import Visibility from '@material-ui/icons/Visibility';
 import VisibilityOff from '@material-ui/icons/VisibilityOff';
 import DoneOutlinedIcon from '@material-ui/icons/DoneOutlined';
 import PropTypes from 'prop-types';
-import axios from 'axios';
 import ImportServices from '../../Services/import';
 import ListDialog from './ListDialog';
 import styles from './import-jss';
@@ -43,8 +42,6 @@ const databases = [
   { id: 'MongoDB', name: 'MongoDB' },
   { id: 'MariaDB', name: 'MariaDB' }
 ];
-
-const apiURL = 'http://localhost:9090/import/database';
 
 class ImportDatabase extends Component {
   state = {
@@ -96,18 +93,17 @@ class ImportDatabase extends Component {
       port,
       databaseName
     };
-    ImportServices.testConnection(connectionParam)
-      .then(response => {
-        if (response.data) {
-          this.setState({
-            testConnected: true
-          });
-        } else {
-          this.setState({
-            testConnected: false
-          });
-        }
-      });
+    ImportServices.testConnection(connectionParam).then(response => {
+      if (response.data) {
+        this.setState({
+          testConnected: true
+        });
+      } else {
+        this.setState({
+          testConnected: false
+        });
+      }
+    });
     setTimeout(() => {
       this.setState({
         isSpinnerShowed: false,
@@ -130,7 +126,12 @@ class ImportDatabase extends Component {
 
   handleConnect = () => {
     const {
-      username, password, host, port, databaseName, selectedDatabaseType
+      username,
+      password,
+      host,
+      port,
+      databaseName,
+      selectedDatabaseType
     } = this.state;
     this.setState({
       isSpinnerShowed: true
@@ -144,25 +145,24 @@ class ImportDatabase extends Component {
       port,
       databaseName
     };
-    ImportServices.testConnection(connectionParam)
-      .then(response => {
-        if (response.data) {
-          this.setListTables(connectionParam);
-          setTimeout(() => {
-            this.setState({
-              isConnected: true,
-              isSpinnerShowed: false
-            });
-          }, 1000);
-        } else {
-          setTimeout(() => {
-            this.setState({
-              isSpinnerShowed: false
-            });
-          }, 1000);
-          alert('connection failed');
-        }
-      });
+    ImportServices.testConnection(connectionParam).then(response => {
+      if (response.data) {
+        this.setListTables(connectionParam);
+        setTimeout(() => {
+          this.setState({
+            isConnected: true,
+            isSpinnerShowed: false
+          });
+        }, 1000);
+      } else {
+        setTimeout(() => {
+          this.setState({
+            isSpinnerShowed: false
+          });
+        }, 1000);
+        alert('connection failed');
+      }
+    });
   };
 
   setListTables = connectionParam => {
@@ -207,27 +207,26 @@ class ImportDatabase extends Component {
       port,
       databaseName
     };
-    ImportServices.getData(selectedTable, connectionParam)
-      .then(response => {
-        const data = [];
-        response.data.forEach((da) => {
-          const dt = da;
-          if (dt._id) {
-            delete dt._id;
-          }
-          data.push(dt);
-        });
-        console.log(response);
-        setTableData(data);
-        setTableOriginalData(data);
-        setTableName(selectedTable);
-        setTimeout(() => {
-          this.setState({
-            isImport: false
-          });
-          handleNext();
-        }, 500);
+    ImportServices.getData(selectedTable, connectionParam).then(response => {
+      const data = [];
+      response.data.forEach(da => {
+        const dt = da;
+        if (dt._id) {
+          delete dt._id;
+        }
+        data.push(dt);
       });
+      console.log(response);
+      setTableData(data);
+      setTableOriginalData(data);
+      setTableName(selectedTable);
+      setTimeout(() => {
+        this.setState({
+          isImport: false
+        });
+        handleNext();
+      }, 500);
+    });
   };
 
   handleOpenDialog = () => {
@@ -311,12 +310,9 @@ class ImportDatabase extends Component {
       port,
       databaseName
     };
-    const { sub } = JSON.parse(sessionStorage.getItem('user'));
-    const config = {
-      headers: { Authorization: sessionStorage.getItem('token') }
-    };
-    axios.post(apiURL + '/savesource&' + sub, connectionParam, config);
-    this.updateHistoryList();
+    ImportServices.saveSource(connectionParam).then(() => {
+      this.updateHistoryList();
+    });
   };
 
   handleLoad = () => {
@@ -326,21 +322,15 @@ class ImportDatabase extends Component {
   };
 
   handleDeleteDatabaseSource = dbs => {
-    const config = {
-      headers: { Authorization: sessionStorage.getItem('token') }
-    };
-    axios.post(apiURL + '/deletesource', dbs, config).then(response => {
+    ImportServices.deleteSource(dbs).then(response => {
       console.log(response.data);
       this.updateHistoryList();
     });
   };
 
   updateHistoryList = () => {
-    const { sub } = JSON.parse(sessionStorage.getItem('user'));
-    const config = {
-      headers: { Authorization: sessionStorage.getItem('token') }
-    };
-    axios.get(apiURL + '/getsources&' + sub, config).then(response => {
+    ImportServices.getSources().then(response => {
+      console.log(response.data);
       this.setState({
         historyDatabaseSources: response.data
       });

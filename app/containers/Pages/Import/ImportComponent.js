@@ -23,7 +23,6 @@ import {
   setOriginalData,
   clearDataHistory
 } from 'dan-actions/importedDataActions';
-import Axios from 'axios';
 import ImportBlock from './ImportBlock';
 import ImportFile from './ImportFile';
 import ImportDatabase from './ImportDatabase';
@@ -33,6 +32,7 @@ import MergeBlock from './MergeBlock';
 import StrippedTable from '../Table/StrippedTable';
 import StrippedTable2 from '../Table/StrippedTable2';
 import ProcessDone from './ProcessDone';
+import DatawarehouseServices from '../../Services/datawarehouse';
 import styles from './import-jss';
 
 class ImportComponent extends React.Component {
@@ -176,21 +176,11 @@ class ImportComponent extends React.Component {
       onClear
     } = this.props;
 
-    const config = {
-      headers: { Authorization: sessionStorage.getItem('token') }
-    };
-    Axios.post(
-      'http://localhost:9090/datawarehouse/load/' + inputTableName,
-      tableData,
-      config
-    );
+    DatawarehouseServices.loadData(inputTableName, tableData);
 
-    Axios.post(
-      'http://localhost:9090/datawarehouse/load/'
-        + inputTableName
-        + '_original',
-      originalData,
-      config
+    DatawarehouseServices.loadData(
+      inputTableName + '_original',
+      originalData
     ).then(response => {
       console.log(response);
       setTimeout(() => {

@@ -3,7 +3,6 @@ import { PapperBlock } from 'dan-components';
 import { connect } from 'react-redux';
 import { Grid } from '@material-ui/core';
 import PropTypes from 'prop-types';
-import Axios from 'axios';
 import interact from 'interactjs';
 import SimpleLineChart from 'dan-components/Charts/SimpleLineChart';
 import SimpleAreaChart from 'dan-components/Charts/SimpleAreaChart';
@@ -13,8 +12,7 @@ import SimpleScatterChart from 'dan-components/Charts/SimpleScatterChart';
 import SimpleRadarChart from 'dan-components/Charts/SimpleRadarChart';
 import ChartSettings from './ChartSettings';
 import SimplePieChart from '../../../components/Charts/SimplePieChart';
-
-const apiURL = 'http://localhost:9090/datawarehouse';
+import DatawarehouseServices from '../../Services/datawarehouse';
 
 class ChartBlock extends Component {
   state = {
@@ -22,10 +20,7 @@ class ChartBlock extends Component {
   };
 
   componentDidMount() {
-    const config = {
-      headers: { Authorization: sessionStorage.getItem('token') }
-    };
-    Axios.get(apiURL + '/tables', config).then(response => {
+    DatawarehouseServices.getTables().then(response => {
       this.setState({
         tables: response.data
       });
