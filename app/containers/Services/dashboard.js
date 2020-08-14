@@ -6,10 +6,8 @@ const config = {
   headers: { Authorization: sessionStorage.getItem('token') }
 };
 
-const { sub } = JSON.parse(sessionStorage.getItem('user'));
-
 class DashboardServices {
-  save = dashboard => axios.post(`${API_URL}/dashboard/save&${sub}`, dashboard, config);
+  save = dashboard => axios.post(`${API_URL}/dashboard/save&`, dashboard, config);
 
   getDataByRows = (tableName, rows) => axios.get(
     `${API_URL}/dashboard/data/getbyrows/${tableName}&${rows}`,
@@ -21,6 +19,6 @@ class DashboardServices {
     config
   );
 
-  getCharts = () => axios.get(`${API_URL}/dashboard/${sub}/charts`, config);
+  getCharts = () => axios.get(`${API_URL}/dashboard/charts`, config);
 }
 export default new DashboardServices();

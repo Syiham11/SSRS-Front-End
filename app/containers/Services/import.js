@@ -6,8 +6,6 @@ const config = {
   headers: { Authorization: sessionStorage.getItem('token') }
 };
 
-const { sub } = JSON.parse(sessionStorage.getItem('user'));
-
 class ImportServices {
   testConnection = dataSource => axios.post(
     `${API_URL}/import/database/testconnection`,
@@ -17,17 +15,13 @@ class ImportServices {
 
   getTables = dataSource => axios.post(`${API_URL}/import/database/tables`, dataSource, config);
 
-  getSources = () => axios.get(`${API_URL}/import/database/getsources&${sub}`, config);
+  getSources = () => axios.get(`${API_URL}/import/database/getsources`, config);
 
   loadData = (data, tableName) => axios.post(`${API_URL}/import/database/load/${tableName}`, data, config);
 
   getHistoricTables = () => axios.get(`${API_URL}/import/database/gethistoric`, config);
 
-  saveSource = dataSource => axios.post(
-    `${API_URL}/import/database/savesource&${sub}`,
-    dataSource,
-    config
-  );
+  saveSource = dataSource => axios.post(`${API_URL}/import/database/savesource`, dataSource, config);
 
   deleteSource = dataSource => axios.post(`${API_URL}/import/database/deletesource`, dataSource, config);
 
