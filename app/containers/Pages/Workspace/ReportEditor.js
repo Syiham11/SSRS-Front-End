@@ -19,11 +19,11 @@ import PropTypes from 'prop-types';
 import * as JsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import ReactQuill from 'react-quill';
-import Axios from 'axios';
 import * as am4core from '@amcharts/amcharts4/core';
 import 'react-quill/dist/quill.bubble.css';
 import interact from 'interactjs';
 import ListDialog from './ListDialog';
+import ReportServices from '../../Services/report';
 
 const styles = theme => ({
   textarea: {
@@ -233,17 +233,11 @@ export class ReportEditor extends Component {
   };
 
   updateHistoryList = () => {
-    const { sub } = JSON.parse(sessionStorage.getItem('user'));
-    const config = {
-      headers: { Authorization: sessionStorage.getItem('token') }
-    };
-    Axios.get('http://localhost:9090/report/getAll&' + sub, config).then(
-      response => {
-        this.setState({
-          historyTemplates: response.data
-        });
-      }
-    );
+    ReportServices.getAll().then(response => {
+      this.setState({
+        historyTemplates: response.data
+      });
+    });
   };
 
   insertElement = type => {
@@ -395,17 +389,12 @@ export class ReportEditor extends Component {
       };
       list.push(item1);
     });
-    const { sub } = JSON.parse(sessionStorage.getItem('user'));
-    const config = {
-      headers: { Authorization: sessionStorage.getItem('token') }
-    };
     const obj = {
       templateParam: JSON.stringify(list),
       creationTime: new Date()
     };
-    Axios.post('http://localhost:9090/report/save&' + sub, obj, config)
-      .then(response => {
-        console.log(response.data);
+    ReportServices.save(obj)
+      .then(() => {
         this.updateHistoryList();
       })
       .catch(error => {
@@ -464,15 +453,10 @@ export class ReportEditor extends Component {
   };
 
   handleDeleteTemplate = tmp => {
-    const config = {
-      headers: { Authorization: sessionStorage.getItem('token') }
-    };
-    Axios.post('http://localhost:9090/report/delete', tmp, config).then(
-      response => {
-        console.log(response.data);
-        this.updateHistoryList();
-      }
-    );
+    ReportServices.delete(tmp).then(response => {
+      console.log(response.data);
+      this.updateHistoryList();
+    });
   };
 
   loadReportTemplate = id => {

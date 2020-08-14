@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import { PapperBlock } from 'dan-components';
 import { PropTypes } from 'prop-types';
-import Axios from 'axios';
 import Ionicon from 'react-ionicons';
 import {
   Button,
@@ -15,6 +14,7 @@ import {
   MuiPickersUtilsProvider,
   KeyboardDatePicker
 } from '@material-ui/pickers';
+import UserServices from '../../Services/user';
 
 const styles = theme => ({
   root: {
@@ -56,12 +56,6 @@ const styles = theme => ({
   }
 });
 
-const apiURL = 'http://localhost:9090';
-
-const config = {
-  headers: { Authorization: sessionStorage.getItem('token') }
-};
-
 export class AboutMe extends Component {
   state = {
     newPassword: '',
@@ -76,23 +70,21 @@ export class AboutMe extends Component {
 
   componentDidMount() {
     const sessionUser = JSON.parse(sessionStorage.getItem('user'));
-    Axios.get(apiURL + '/getuserdata/' + sessionUser.id, config).then(
-      response => {
-        const user = response.data;
-        let userBirthday = '';
-        if (user.birthday !== null) {
-          userBirthday = this.formatDate(user.birthday).substring(0, 10);
-        }
-        this.setState({
-          username: user.username,
-          email: user.email,
-          idCardNumber: user.idCardNumber,
-          address: user.address,
-          birthday: userBirthday,
-          user
-        });
+    UserServices.getUserData(sessionUser.id).then(response => {
+      const user = response.data;
+      let userBirthday = '';
+      if (user.birthday !== null) {
+        userBirthday = this.formatDate(user.birthday).substring(0, 10);
       }
-    );
+      this.setState({
+        username: user.username,
+        email: user.email,
+        idCardNumber: user.idCardNumber,
+        address: user.address,
+        birthday: userBirthday,
+        user
+      });
+    });
   }
 
   handleUsernameChange = e => {
@@ -154,7 +146,7 @@ export class AboutMe extends Component {
       user.idCardNumber = idCardNumber;
       user.address = address;
       user.birthday = birthday;
-      Axios.post(apiURL + '/updateUser', user, config).then(() => {
+      UserServices.update(user).then(() => {
         sessionUser.username = username;
         sessionUser.sub = email;
         sessionStorage.setItem('user', JSON.stringify(sessionUser));

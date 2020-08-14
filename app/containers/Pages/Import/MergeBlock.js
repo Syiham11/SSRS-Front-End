@@ -8,7 +8,6 @@ import {
   Box,
   Button
 } from '@material-ui/core';
-import Axios from 'axios';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -21,6 +20,7 @@ import {
 import UndoOutlinedIcon from '@material-ui/icons/UndoOutlined';
 import RedoOutlinedIcon from '@material-ui/icons/RedoOutlined';
 import SettingsBackupRestoreOutlinedIcon from '@material-ui/icons/SettingsBackupRestoreOutlined';
+import DatawarehouseServices from '../../Services/datawarehouse';
 import styles from './import-jss';
 
 const mergeTypes = [
@@ -35,11 +35,6 @@ const joinTypes = [
   { id: 'fullOuterJoin', name: 'Full Outer Join' }
 ];
 
-const apiURL = 'http://localhost:9090/datawarehouse';
-const config = {
-  headers: { Authorization: sessionStorage.getItem('token') }
-};
-
 class MergeData extends Component {
   state = {
     selectedTable: '',
@@ -52,7 +47,7 @@ class MergeData extends Component {
   };
 
   componentDidMount() {
-    Axios.get(apiURL + '/tables', config).then(response => {
+    DatawarehouseServices.getTables().then(response => {
       console.log(response.data);
       this.setState({
         tables: response.data
@@ -62,11 +57,12 @@ class MergeData extends Component {
 
   handleTableChange = event => {
     const { showMergedTable, handleSetData } = this.props;
+    const tableName = event.target.value;
     this.setState({
-      selectedTable: event.target.value,
+      selectedTable: tableName,
       isSpinnerShowed: true
     });
-    Axios.get(apiURL + '/data/' + event.target.value, config).then(response => {
+    DatawarehouseServices.getData(tableName).then(response => {
       handleSetData(response.data);
       showMergedTable(true);
       this.setState({

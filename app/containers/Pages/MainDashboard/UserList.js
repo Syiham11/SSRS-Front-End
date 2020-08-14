@@ -10,7 +10,6 @@ import {
   IconButton
 } from '@material-ui/core';
 import VisibilityIcon from '@material-ui/icons/Visibility';
-import Axios from 'axios';
 import avatarApi from 'dan-api/images/avatars';
 import ListItemAvatar from '@material-ui/core/ListItemAvatar';
 import PropTypes from 'prop-types';
@@ -18,12 +17,7 @@ import PropTypes from 'prop-types';
 import styles from './Dashboard-jss';
 import PapperBlock from '../../../components/PapperBlock/PapperBlock';
 import UserProfile from '../UserProfile';
-
-const apiURL = 'http://localhost:9090';
-
-const config = {
-  headers: { Authorization: sessionStorage.getItem('token') }
-};
+import UserServices from '../../Services/user';
 
 class UserList extends Component {
   state = {
@@ -35,9 +29,8 @@ class UserList extends Component {
   };
 
   componentDidMount() {
-    Axios.get(apiURL + '/getUsersByRange/' + 0 + '&' + 50, config).then(
-      response => {
-        /* if (response.data < 10) {
+    UserServices.getUsersByRange(0, 4).then(response => {
+      /* if (response.data < 10) {
           this.setState({
             users: response.data,
             hasNext: false
@@ -48,26 +41,23 @@ class UserList extends Component {
           });
         } */
 
-        this.setState({
-          users: response.data
-        });
-      }
-    );
+      this.setState({
+        users: response.data
+      });
+    });
   }
 
   fetchMoreData = () => {
     const { lastIndex, users, hasNext } = this.state;
     const newIndex = lastIndex + 1;
     if (hasNext) {
-      Axios.get(apiURL + '/getUsersByRange/' + newIndex + '&' + 4, config).then(
-        response => {
-          console.log(response.data);
-          this.setState({
-            users: users.concat(response.data),
-            lastIndex: lastIndex + 10
-          });
-        }
-      );
+      UserServices.getUsersByRange(newIndex, 4).then(response => {
+        console.log(response.data);
+        this.setState({
+          users: users.concat(response.data),
+          lastIndex: lastIndex + 10
+        });
+      });
     }
   };
 

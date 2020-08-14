@@ -10,7 +10,6 @@ import {
 import { setCharts } from 'dan-actions/dashboardActions';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import Axios from 'axios';
 import interact from 'interactjs';
 import Ionicon from 'react-ionicons';
 import SimpleLineChart from 'dan-components/Charts/SimpleLineChart';
@@ -22,11 +21,8 @@ import SimpleRadarChart from 'dan-components/Charts/SimpleRadarChart';
 import styles from './Dashboard-jss';
 import ChartSettings from './ChartSettings';
 import SimplePieChart from '../../../components/Charts/SimplePieChart';
-
-const apiURL = 'http://localhost:9090/datawarehouse';
-const config = {
-  headers: { Authorization: sessionStorage.getItem('token') }
-};
+import DatawarehouseServices from '../../Services/datawarehouse';
+import DashboardServices from '../../Services/dashboard';
 
 export class ChartBlock extends Component {
   state = {
@@ -40,7 +36,7 @@ export class ChartBlock extends Component {
       const delayInMS = chartParam.delay * 60 * 1000;
       this.intervalID = setInterval(() => this.updateData(), delayInMS);
     }
-    Axios.get(apiURL + '/tables', config).then(response => {
+    DatawarehouseServices.getTables().then(response => {
       this.setState({
         tables: response.data
       });
@@ -93,12 +89,11 @@ export class ChartBlock extends Component {
     if (onlyNumberExp.test(str)) {
       const num = parseInt(str, 10);
       if (num <= 10 && num > 0) {
-        Axios.get(
-          apiURL + '/data/getbyrows/' + chartParam.table + '&' + num,
-          config
-        ).then(response => {
-          this.setTableData(response.data);
-        });
+        DatawarehouseServices.getDataByRows(chartParam.table, num).then(
+          response => {
+            this.setTableData(response.data);
+          }
+        );
       }
     } else if (numberRangeExp.test(str)) {
       const numList = str.replace(/[{}]/g, '');
@@ -109,15 +104,10 @@ export class ChartBlock extends Component {
         && numOfElements > 0
         && parseInt(list[0], 10) < parseInt(list[1], 10)
       ) {
-        Axios.get(
-          apiURL
-            + '/data/getbyrange/'
-            + chartParam.table
-            + '&'
-            + list[0]
-            + '&'
-            + list[1],
-          config
+        DatawarehouseServices.getDataByRange(
+          chartParam.table,
+          list[0],
+          list[1]
         ).then(response => {
           this.setTableData(response.data);
         });
@@ -141,15 +131,8 @@ export class ChartBlock extends Component {
       lastEditTime: new Date()
     };
     const items = [obj, list];
-    const { sub } = JSON.parse(sessionStorage.getItem('user'));
 
-    Axios.post('http://localhost:9090/dashboard/save&' + sub, items, config)
-      .then(response => {
-        console.log(response.data);
-      })
-      .catch(error => {
-        console.log(error.message);
-      });
+    DashboardServices.save(items);
     setDashboardCharts(chartList);
   };
 
@@ -180,10 +163,8 @@ export class ChartBlock extends Component {
       lastEditTime: new Date()
     };
     const items = [obj, list];
-    const { sub } = JSON.parse(sessionStorage.getItem('user'));
-    Axios.post('http://localhost:9090/dashboard/save&' + sub, items, config)
-      .then(response => {
-        console.log(response.data);
+    DashboardServices.save(items)
+      .then(() => {
         setDashboardCharts(charts);
       })
       .catch(error => {

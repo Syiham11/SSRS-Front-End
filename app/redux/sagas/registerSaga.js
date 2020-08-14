@@ -4,18 +4,21 @@ import {
   REGISTER_SUCCEEDED,
   REGISTER_FAILED
 } from 'dan-actions/actionConstants';
-import Axios from 'axios';
+import axios from 'axios';
+import { API } from '../../config/apiUrl';
+
+const API_URL = API;
 
 function checkExist(user) {
-  return Axios.post('http://localhost:9090/user/checkRegister', user).then(
-    response => response.data
-  );
+  return axios
+    .post(`${API_URL}/user/checkRegister`, user)
+    .then(response => response.data);
 }
 
 function registerUser(user) {
-  return Axios.post('http://localhost:9090/user/register', user).then(
-    response => response.data
-  );
+  return axios
+    .post(`${API_URL}/user/register`, user)
+    .then(response => response.data);
 }
 
 function* workerSaga(action) {

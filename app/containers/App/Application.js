@@ -67,11 +67,7 @@ class Application extends React.Component {
             component={AlgorithmPage}
             roleTypes={roles1}
           />
-          <PrivateRoute
-            path="/app/form"
-            component={Form}
-            roleTypes={roles2}
-          />
+          <PrivateRoute path="/app/form" component={Form} roleTypes={roles2} />
           <PrivateRoute path="/app/form" component={Form} roleTypes={roles2} />
           <PrivateRoute
             path="/app/table"

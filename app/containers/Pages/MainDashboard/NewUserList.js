@@ -9,15 +9,13 @@ import {
   DialogContent,
   Dialog
 } from '@material-ui/core';
-import Axios from 'axios';
 import avatarApi from 'dan-api/images/avatars';
 import ListItemAvatar from '@material-ui/core/ListItemAvatar';
 import PropTypes from 'prop-types';
 import styles from './Dashboard-jss';
 import PapperBlock from '../../../components/PapperBlock/PapperBlock';
 import UserProfile from '../UserProfile';
-
-const apiURL = 'http://localhost:9090';
+import UserServices from '../../Services/user';
 
 class NewUserList extends Component {
   state = {
@@ -31,25 +29,17 @@ class NewUserList extends Component {
   }
 
   updateUsersList = () => {
-    const config = {
-      headers: { Authorization: sessionStorage.getItem('token') }
-    };
-    Axios.get(apiURL + '/administration/getAllDeactivatedUsers', config).then(
-      response => {
-        this.setState({
-          users: response.data
-        });
-      }
-    );
+    UserServices.getAllDeactivatedUsers().then(response => {
+      this.setState({
+        users: response.data
+      });
+    });
   };
 
   activateUser = index => {
     const { users } = this.state;
-    const config = {
-      headers: { Authorization: sessionStorage.getItem('token') }
-    };
     users[index].activated = true;
-    Axios.post(apiURL + '/updateUser', users[index], config).then(() => {
+    UserServices.update(users[index]).then(() => {
       this.updateUsersList();
     });
   };

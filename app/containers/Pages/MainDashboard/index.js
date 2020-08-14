@@ -4,7 +4,6 @@ import {
   Grid, withStyles, Typography, Paper
 } from '@material-ui/core';
 import { PropTypes } from 'prop-types';
-import Axios from 'axios';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { setCharts } from 'dan-actions/dashboardActions';
@@ -17,8 +16,7 @@ import DSHBCharts from './DSHBCharts';
 import TaskMenu from './TaskMenu';
 import NewUserList from './NewUserList';
 import UserList from './UserList';
-
-const apiURL = 'http://localhost:9090/dashboard';
+import DashboardServices from '../../Services/dashboard';
 
 class MainDashboard extends React.Component {
   state = {
@@ -29,11 +27,8 @@ class MainDashboard extends React.Component {
   componentDidMount() {
     this.intervalID = setInterval(() => this.updateClock(), 1000);
     const { setDashboardCharts } = this.props;
-    const { sub } = JSON.parse(sessionStorage.getItem('user'));
-    const config = {
-      headers: { Authorization: sessionStorage.getItem('token') }
-    };
-    Axios.get(apiURL + '/' + sub + '/charts', config).then(response => {
+    DashboardServices.getCharts().then(response => {
+      console.log(response.data);
       if (response.data) {
         const list = [];
         const array = response.data;

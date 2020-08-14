@@ -26,7 +26,6 @@ import {
 import DeleteIcon from '@material-ui/icons/Delete';
 import Ionicon from 'react-ionicons';
 import * as math from 'mathjs';
-import Axios from 'axios';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -34,6 +33,7 @@ import { setData } from 'dan-actions/importedDataActions';
 import ExpandMoreOutlinedIcon from '@material-ui/icons/ExpandMoreOutlined';
 import ExpandLessOutlinedIcon from '@material-ui/icons/ExpandLessOutlined';
 import DoneOutlinedIcon from '@material-ui/icons/DoneOutlined';
+import FormulaServices from '../../Services/formula';
 import statistics from './formulas';
 import styles from './import-jss';
 
@@ -43,8 +43,6 @@ const functionTypes = [
   { id: 'Integration', name: 'Integration' },
   { id: 'Boolean', name: 'Boolean' }
 ];
-
-const apiURL = 'http://localhost:9090/formula';
 
 class Calcul extends Component {
   state = {
@@ -189,10 +187,7 @@ class Calcul extends Component {
     const { tableData, setTableData } = this.props;
     const result = this.solveEquation().toString();
     const elem = [result, inputs, newColumnName, tableData];
-    const config = {
-      headers: { Authorization: sessionStorage.getItem('token') }
-    };
-    Axios.post(apiURL + '/solve', elem, config).then(response => {
+    FormulaServices.solve(elem).then(response => {
       setTableData(response.data);
     });
   };
@@ -247,20 +242,12 @@ class Calcul extends Component {
       type: selectedFunctionType,
       creationTime: new Date()
     };
-    const { sub } = JSON.parse(sessionStorage.getItem('user'));
-    const config = {
-      headers: { Authorization: sessionStorage.getItem('token') }
-    };
-    Axios.post(apiURL + '/insert&' + sub, elem, config);
+    FormulaServices.save(elem);
     this.handleDialogClose();
   };
 
   handleLoad = () => {
-    const { sub } = JSON.parse(sessionStorage.getItem('user'));
-    const config = {
-      headers: { Authorization: sessionStorage.getItem('token') }
-    };
-    Axios.get(apiURL + '/getAll&' + sub, config).then(response => {
+    FormulaServices.getAll().then(response => {
       this.setState({
         historyFormulas: response.data,
         openSavedFormulas: true
@@ -269,21 +256,13 @@ class Calcul extends Component {
   };
 
   handleDeleteFormula = formula => {
-    const config = {
-      headers: { Authorization: sessionStorage.getItem('token') }
-    };
-    Axios.post(apiURL + '/delete', formula, config).then(response => {
-      console.log(response.data);
+    FormulaServices.delete(formula).then(() => {
       this.updateFormulaHistory();
     });
   };
 
   updateFormulaHistory = () => {
-    const { sub } = JSON.parse(sessionStorage.getItem('user'));
-    const config = {
-      headers: { Authorization: sessionStorage.getItem('token') }
-    };
-    Axios.get(apiURL + '/getAll&' + sub, config).then(response => {
+    FormulaServices.getAllFormulas().then(response => {
       this.setState({
         historyFormulas: response.data
       });
