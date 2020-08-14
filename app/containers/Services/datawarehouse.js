@@ -1,6 +1,11 @@
 import axios from 'axios';
-import { API, config } from '../../config/apiUrl';
+import { API } from '../../config/apiUrl';
 const API_URL = API;
+
+const config = {
+  headers: { Authorization: sessionStorage.getItem('token') }
+};
+
 class DatawarehouseServices {
   loadData = (tableName, data) => axios.post(`${API_URL}/datawarehouse/load/` + tableName, data, config);
 

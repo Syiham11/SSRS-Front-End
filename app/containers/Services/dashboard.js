@@ -1,6 +1,13 @@
 import axios from 'axios';
-import { API, config, sub } from '../../config/apiUrl';
+import { API } from '../../config/apiUrl';
 const API_URL = API;
+
+const config = {
+  headers: { Authorization: sessionStorage.getItem('token') }
+};
+
+const { sub } = JSON.parse(sessionStorage.getItem('user'));
+
 class DashboardServices {
   save = dashboard => axios.post(`${API_URL}/dashboard/save&${sub}`, dashboard, config);
 

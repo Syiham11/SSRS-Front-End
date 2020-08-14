@@ -1,6 +1,13 @@
 import axios from 'axios';
-import { API, config, sub } from '../../config/apiUrl';
+import { API } from '../../config/apiUrl';
 const API_URL = API;
+
+const config = {
+  headers: { Authorization: sessionStorage.getItem('token') }
+};
+
+const { sub } = JSON.parse(sessionStorage.getItem('user'));
+
 class TaskServices {
   getAll = () => axios.get(`${API_URL}/task/getAll&${sub}`, config);
 

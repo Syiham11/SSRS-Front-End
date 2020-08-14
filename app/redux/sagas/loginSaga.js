@@ -29,7 +29,7 @@ function* workerSaga(action) {
         isConnected: true
       });
       axios
-        .get(`${API_URL}/user/getProfileImage/'${jwtdecoded.id}`)
+        .get(`${API_URL}/user/getProfileImage/${jwtdecoded.id}`)
         .then(response => {
           jwtdecoded = {
             ...jwtdecoded,

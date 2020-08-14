@@ -1,6 +1,11 @@
 import axios from 'axios';
-import { API, config } from '../../config/apiUrl';
+import { API } from '../../config/apiUrl';
 const API_URL = API;
+
+const config = {
+  headers: { Authorization: sessionStorage.getItem('token') }
+};
+
 class UserServices {
   getAll = () => axios.get(`${API_URL}/administration/getAllUser`, config);
 
