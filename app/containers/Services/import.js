@@ -7,11 +7,7 @@ const config = {
 };
 
 class ImportServices {
-  testConnection = dataSource => axios.post(
-    `${API_URL}/import/database/testconnection`,
-    dataSource,
-    this.config
-  );
+  testConnection = dataSource => axios.post(`${API_URL}/import/database/testconnection`, dataSource, config);
 
   getTables = dataSource => axios.post(`${API_URL}/import/database/tables`, dataSource, config);
 

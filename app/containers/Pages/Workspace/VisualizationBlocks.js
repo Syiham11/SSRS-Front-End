@@ -8,7 +8,8 @@ import {
   IconButton,
   Typography,
   Paper,
-  TextField
+  TextField,
+  Tooltip
 } from '@material-ui/core';
 import Ionicon from 'react-ionicons';
 import PropTypes from 'prop-types';
@@ -315,30 +316,38 @@ class VisualizationBlock extends Component {
                   alignItems: 'center'
                 }}
               >
-                <span className={classes.iconTitle}>
-                  <Ionicon
-                    icon="ios-create-outline"
-                    onClick={this.renameWorkspace}
-                  />
-                </span>
-                <span className={classes.iconTitle}>
-                  <Ionicon
-                    icon="ios-bookmark-outline"
-                    onClick={this.saveWorkspace}
-                  />
-                </span>
-                <span className={classes.iconTitle}>
-                  <Ionicon
-                    icon="ios-document-outline"
-                    onClick={this.openReportEditor}
-                  />
-                </span>
-                <span className={classes.iconTitle}>
-                  <Ionicon
-                    icon="ios-list-box-outline"
-                    onClick={this.backToList}
-                  />
-                </span>
+                <Tooltip title="Rename">
+                  <span className={classes.iconTitle}>
+                    <Ionicon
+                      icon="ios-create-outline"
+                      onClick={this.renameWorkspace}
+                    />
+                  </span>
+                </Tooltip>
+                <Tooltip title="Save">
+                  <span className={classes.iconTitle}>
+                    <Ionicon
+                      icon="ios-bookmark-outline"
+                      onClick={this.saveWorkspace}
+                    />
+                  </span>
+                </Tooltip>
+                <Tooltip title="Open report editor">
+                  <span className={classes.iconTitle}>
+                    <Ionicon
+                      icon="ios-document-outline"
+                      onClick={this.openReportEditor}
+                    />
+                  </span>
+                </Tooltip>
+                <Tooltip title="Back to main">
+                  <span className={classes.iconTitle}>
+                    <Ionicon
+                      icon="ios-list-box-outline"
+                      onClick={this.backToList}
+                    />
+                  </span>
+                </Tooltip>
               </div>
             </Paper>
           )}

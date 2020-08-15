@@ -33,6 +33,7 @@ import PropTypes from 'prop-types';
 import ImportServices from '../../Services/import';
 import ListDialog from './ListDialog';
 import styles from './import-jss';
+import Notification from '../../../components/Notification/Notification';
 
 const databases = [
   { id: 'SQLServer', name: 'Microsoft SQL Server' },
@@ -60,7 +61,8 @@ class ImportDatabase extends Component {
     testConnected: false,
     showPassword: false,
     listTables: [],
-    isImport: false
+    isImport: false,
+    notifMessage: ''
   };
 
   componentDidMount() {
@@ -311,6 +313,7 @@ class ImportDatabase extends Component {
       databaseName
     };
     ImportServices.saveSource(connectionParam).then(() => {
+      this.openNotif('Configurations are saved');
       this.updateHistoryList();
     });
   };
@@ -337,6 +340,18 @@ class ImportDatabase extends Component {
     });
   };
 
+  openNotif = message => {
+    this.setState({
+      notifMessage: message
+    });
+  };
+
+  closeNotif = () => {
+    this.setState({
+      notifMessage: ''
+    });
+  };
+
   render() {
     const {
       selectedDatabaseType,
@@ -354,7 +369,8 @@ class ImportDatabase extends Component {
       showPassword,
       listTables,
       isImport,
-      historyDatabaseSources
+      historyDatabaseSources,
+      notifMessage
     } = this.state;
     const { classes } = this.props;
     return (
@@ -368,6 +384,7 @@ class ImportDatabase extends Component {
         ) : (
           <div />
         )}
+        <Notification message={notifMessage} close={this.closeNotif} />
         <div
           style={
             isSpinnerShowed ? { pointerEvents: 'none', opacity: '0.4' } : {}

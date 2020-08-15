@@ -202,7 +202,7 @@ const styles = theme => ({
   },
   formControlAlgo: {
     marginLeft: theme.spacing(2),
-    marginRight: theme.spacing(2),
+    marginRight: theme.spacing(2)
   }
 });
 

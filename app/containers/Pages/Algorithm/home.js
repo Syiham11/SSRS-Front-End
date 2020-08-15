@@ -2,17 +2,15 @@ import React from 'react';
 import { Helmet } from 'react-helmet';
 import brand from 'dan-api/dummy/brand';
 import withStyles from '@material-ui/core/styles/withStyles';
-import {
-  IconButton, Slide, Snackbar, Tooltip
-} from '@material-ui/core';
+import { IconButton, Tooltip } from '@material-ui/core';
 import UpdateIcon from '@material-ui/icons/Update';
 import AddIcon from '@material-ui/icons/Add';
-import CloseIcon from '@material-ui/icons/Close';
 import { PropTypes } from 'prop-types';
 import MaterialTable from 'material-table';
 import PapperBlock from '../../../components/PapperBlock/PapperBlock';
 import AlgorithmsServices from '../../Services/algorithm.js';
 import history from '../../../utils/history';
+import Notification from '../../../components/Notification/Notification';
 
 const styles = theme => ({
   root: theme.mixins.gutters({
@@ -69,16 +67,13 @@ const styles = theme => ({
     boxShadow: '2px 2px 5px 5px #cccccc'
   }
 });
-function TransitionLeft(props) {
-  return <Slide {...props} direction="left" />;
-}
 class AlgorithmHome extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       data: [],
       columns: [],
-      openStack: false
+      notifMessage: ''
     };
   }
 
@@ -108,8 +103,8 @@ class AlgorithmHome extends React.Component {
   handleDeleteAlgorithm = rowData => {
     AlgorithmsServices.deleteAlgorithm(rowData.algoId).then(res => {
       console.log(res);
+      this.openNotif('Algorithm deleted');
       this.getAlgorithms();
-      this.setState({ openStack: true });
     });
   };
 
@@ -117,19 +112,27 @@ class AlgorithmHome extends React.Component {
     history.push('/app/algorithms');
   };
 
-  handleCloseStack = () => {
-    this.setState({ openStack: false });
-  };
-
   handleRefresh = () => {
     this.getAlgorithms();
+  };
+
+  openNotif = message => {
+    this.setState({
+      notifMessage: message
+    });
+  };
+
+  closeNotif = () => {
+    this.setState({
+      notifMessage: ''
+    });
   };
 
   render() {
     const title = brand.name + ' - Algorithms';
     const description = brand.desc;
     const { classes } = this.props;
-    const { data, columns, openStack } = this.state;
+    const { data, columns, notifMessage } = this.state;
     return (
       <div>
         <Helmet>
@@ -138,6 +141,7 @@ class AlgorithmHome extends React.Component {
           <meta property="og:title" content={title} />
           <meta property="og:description" content={description} />
         </Helmet>
+        <Notification message={notifMessage} close={this.closeNotif} />
         <PapperBlock
           title="Algorithms"
           desc=""
@@ -190,29 +194,6 @@ class AlgorithmHome extends React.Component {
             ]}
           />
         </PapperBlock>
-        <Snackbar
-          anchorOrigin={{
-            vertical: 'top',
-            horizontal: 'right'
-          }}
-          open={openStack}
-          autoHideDuration={3000}
-          onClose={this.handleCloseStack}
-          message="Algorithms deleted"
-          TransitionComponent={TransitionLeft}
-          action={(
-            <React.Fragment>
-              <IconButton
-                size="small"
-                aria-label="close"
-                color="inherit"
-                onClick={this.handleCloseStack}
-              >
-                <CloseIcon fontSize="small" />
-              </IconButton>
-            </React.Fragment>
-          )}
-        />
       </div>
     );
   }

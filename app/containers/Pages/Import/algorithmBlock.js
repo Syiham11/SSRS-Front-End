@@ -20,21 +20,19 @@ import {
   Dialog,
   DialogContent,
   DialogContentText,
-  Box,
   Typography,
-  IconButton, Collapse, Icon
+  Collapse,
+  DialogTitle,
+  DialogActions
 } from '@material-ui/core';
 import { PropTypes } from 'prop-types';
 import _ from 'lodash';
 import MathJax from 'react-mathjax2';
 import AddIcon from '@material-ui/icons/Add';
 import DoneAllIcon from '@material-ui/icons/DoneAll';
-import CloseIcon from '@material-ui/icons/Close';
 import AlgorithmsServices from '../../Services/algorithm';
 import styles from './import-jss';
 import history from '../../../utils/history';
-import Transition from './transition';
-
 
 class AlgorithmBlock extends React.Component {
   constructor(props) {
@@ -45,7 +43,7 @@ class AlgorithmBlock extends React.Component {
           algoId: ''
         },
         variables: [],
-        result: '',
+        result: ''
       },
       algorithms: [],
       open: false,
@@ -53,7 +51,7 @@ class AlgorithmBlock extends React.Component {
       newAlgo: {
         name: '',
         formula: '',
-        desc: '',
+        desc: ''
       }
     };
   }
@@ -82,7 +80,9 @@ class AlgorithmBlock extends React.Component {
       sign: '',
       expression: ''
     };
-    const { newAlgo: { formula, name, desc } } = this.state;
+    const {
+      newAlgo: { formula, name, desc }
+    } = this.state;
     algo.algoType = 'simple';
     algo.algoDescription = desc;
     algo.algoName = name;
@@ -95,7 +95,7 @@ class AlgorithmBlock extends React.Component {
           newAlgo: {
             name: '',
             formula: '',
-            desc: '',
+            desc: ''
           }
         });
       });
@@ -103,11 +103,14 @@ class AlgorithmBlock extends React.Component {
     this.handleClose();
   };
 
-  handleVariableChange = (v) => (ev) => {
+  handleVariableChange = v => ev => {
     const { currentAlgorithm } = this.state;
     const variable = v;
     variable.value = ev.target.value;
-    const variablesT = [...currentAlgorithm.variables.filter((vy) => vy.name !== variable.name), variable];
+    const variablesT = [
+      ...currentAlgorithm.variables.filter(vy => vy.name !== variable.name),
+      variable
+    ];
     currentAlgorithm.variables = _.sortBy(variablesT, ['name']);
     this.setState({ currentAlgorithm });
   };
@@ -120,41 +123,44 @@ class AlgorithmBlock extends React.Component {
     const { open } = this.state;
     this.setState({ open: true });
     console.log(open);
-  }
+  };
 
-  handleAlgorithmTypeChange = (ev) => {
+  handleAlgorithmTypeChange = ev => {
     this.setState({ algorithmType: ev.target.value });
-  }
+  };
 
   handleClose = () => {
-    this.setState({ open: false });
-  }
+    this.setState({ open: false, algorithmType: '' });
+  };
 
-  handleNewAlgoChange = (ev) => {
+  handleNewAlgoChange = ev => {
     const { newAlgo } = this.state;
     newAlgo[ev.target.name] = ev.target.value;
     this.setState({ newAlgo });
-  }
+  };
 
-  handleAlgoChange = (ev) => {
+  handleAlgoChange = ev => {
     const { currentAlgorithm } = this.state;
     const currentAlgorithmT = currentAlgorithm;
     currentAlgorithmT.algo = ev.target.value;
     const t = />=|<=|=|>|</g;
     const formula = ev.target.value.algoFormula.replace(t, '+');
-    currentAlgorithmT.variables = _.reduce(nerdamer(formula).variables(), (result, n) => {
-      result.push({ name: n, value: '' });
-      return result;
-    }, []);
+    currentAlgorithmT.variables = _.reduce(
+      nerdamer(formula).variables(),
+      (result, n) => {
+        result.push({ name: n, value: '' });
+        return result;
+      },
+      []
+    );
     this.setState({ currentAlgorithm: currentAlgorithmT });
   };
 
-  handleResult = (ev) => {
+  handleResult = ev => {
     const { currentAlgorithm } = this.state;
     currentAlgorithm.result = ev.target.value;
     this.setState({ currentAlgorithm });
   };
-
 
   render() {
     const { classes, columns } = this.props;
@@ -163,45 +169,35 @@ class AlgorithmBlock extends React.Component {
       algorithms,
       open,
       algorithmType,
-      newAlgo: {
-        name,
-        formula,
-        desc,
-      }
+      newAlgo: { name, formula, desc }
     } = this.state;
     return (
       <div>
-        <Grid
-          container
-          spacing={3}
-        >
+        <Grid container spacing={3}>
           <Grid item md={3}>
             <ListItem>
-              <Chip label="Algorithms" avatar={<Avatar>A</Avatar>} color="primary" />
+              <Chip
+                label="Algorithms"
+                avatar={<Avatar>A</Avatar>}
+                color="primary"
+              />
             </ListItem>
             <Divider variant="middle" />
             <ListItem>
-              <FormControl
-                fullWidth
-              >
-                <InputLabel>
-                  Algorithms
-                </InputLabel>
+              <FormControl fullWidth>
+                <InputLabel>Algorithm</InputLabel>
                 <Select
                   name="name"
-                  value={currentAlgorithm.algo || ''}
+                  value={
+                    currentAlgorithm.algo.algoId ? currentAlgorithm.algo : ''
+                  }
                   onChange={this.handleAlgoChange}
                 >
-
-                  {algorithms.map((algorithm) => (
-                    <MenuItem
-                      key={algorithm.algoName}
-                      value={algorithm}
-                    >
+                  {algorithms.map(algorithm => (
+                    <MenuItem key={algorithm.algoName} value={algorithm}>
                       {algorithm.algoName}
                     </MenuItem>
-                  ))
-                  }
+                  ))}
                 </Select>
               </FormControl>
             </ListItem>
@@ -211,9 +207,9 @@ class AlgorithmBlock extends React.Component {
                   Your formula:
                   {' '}
                   <MathJax.Node inline>
-                    {
-                      currentAlgorithm.algo.algoFormula ? currentAlgorithm.algo.algoFormula : ''
-                    }
+                    {currentAlgorithm.algo.algoFormula
+                      ? currentAlgorithm.algo.algoFormula
+                      : ''}
                   </MathJax.Node>
                 </div>
               </MathJax.Context>
@@ -221,14 +217,15 @@ class AlgorithmBlock extends React.Component {
           </Grid>
           <Grid item md={3}>
             <ListItem>
-              <Chip label="Result" avatar={<Avatar>R</Avatar>} color="primary" />
+              <Chip
+                label="Result"
+                avatar={<Avatar>R</Avatar>}
+                color="primary"
+              />
             </ListItem>
             <Divider variant="middle" />
             <ListItem>
-              <FormControl
-                variant="standard"
-                fullWidth
-              >
+              <FormControl variant="standard" fullWidth>
                 <TextField
                   id="standard-basic"
                   label="new column name"
@@ -241,40 +238,38 @@ class AlgorithmBlock extends React.Component {
           </Grid>
           <Grid item md={3}>
             <ListItem>
-              <Chip label="Parameters" avatar={<Avatar>P</Avatar>} color="primary" />
+              <Chip
+                label="Parameters"
+                avatar={<Avatar>P</Avatar>}
+                color="primary"
+              />
             </ListItem>
             <Divider variant="middle" />
-            {
-              currentAlgorithm.variables.map((v) => (
-                <ListItem key={v.name}>
-                  <FormControl
-                    fullWidth
+            {currentAlgorithm.variables.map(v => (
+              <ListItem key={v.name}>
+                <FormControl fullWidth>
+                  <InputLabel>{v.name}</InputLabel>
+                  <Select
+                    value={v.value || ''}
+                    onChange={this.handleVariableChange(v)}
                   >
-                    <InputLabel>
-                      {v.name}
-                    </InputLabel>
-                    <Select
-                      value={v.value || ''}
-                      onChange={this.handleVariableChange(v)}
-                    >
-                      {columns.map((col) => (
-                        <MenuItem
-                          key={col}
-                          value={col}
-                        >
-                          {col}
-                        </MenuItem>
-                      ))
-                      }
-                    </Select>
-                  </FormControl>
-                </ListItem>
-              ))
-            }
+                    {columns.map(col => (
+                      <MenuItem key={col} value={col}>
+                        {col}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </ListItem>
+            ))}
           </Grid>
           <Grid item md={3}>
             <ListItem>
-              <Chip label="Actions" avatar={<Avatar>A</Avatar>} color="primary" />
+              <Chip
+                label="Actions"
+                avatar={<Avatar>A</Avatar>}
+                color="primary"
+              />
             </ListItem>
             <Divider variant="middle" />
             <ListItem>
@@ -284,12 +279,14 @@ class AlgorithmBlock extends React.Component {
                 variant="contained"
                 color="secondary"
                 startIcon={<DoneAllIcon />}
-                disabled={!currentAlgorithm.algo.algoId && !currentAlgorithm.result}
+                disabled={
+                  !currentAlgorithm.algo.algoId && !currentAlgorithm.result
+                }
                 onClick={this.handleApply}
               >
                 Apply
               </Button>
-              <Tooltip title="hit to create new algorithm">
+              <Tooltip title="Create new algorithm">
                 <Button
                   size="small"
                   variant="contained"
@@ -305,27 +302,16 @@ class AlgorithmBlock extends React.Component {
         </Grid>
         <Dialog
           open={open}
-          TransitionComponent={Transition}
-          keepMounted
+          disableBackdropClick
+          disableEscapeKeyDown
           onClose={this.handleClose}
           aria-labelledby="alert-dialog-slide-title"
           aria-describedby="alert-dialog-slide-description"
           fullWidth
           maxWidth="sm"
         >
-          <Box display="flex" component={ListItem}>
-            <Box flexGrow={1}>
-              <Typography variant="subtitle2" color="primary">
-                Create algorithm
-              </Typography>
-            </Box>
-            <Box>
-              <IconButton onClick={this.handleClose}>
-                <CloseIcon />
-              </IconButton>
-            </Box>
-          </Box>
-          <DialogContent dividers>
+          <DialogTitle id="alert-dialog-title">Create Algorithm</DialogTitle>
+          <DialogContent>
             <DialogContentText id="alert-dialog-slide-description">
               <Typography
                 variant="caption"
@@ -333,107 +319,88 @@ class AlgorithmBlock extends React.Component {
                 gutterBottom
                 align="center"
               >
-                Use parameters below to create your own formula, make sure
-                that you fill the blanks with right values.
+                Use parameters below to create your own formula, make sure that
+                you fill the blanks with right values.
               </Typography>
               <ListItem>
-                <FormControl
-                  fullWidth
-                  className={classes.formControlAlgo}
-                >
-                  <InputLabel>
-                    Select algorithm type
-                  </InputLabel>
+                <FormControl fullWidth className={classes.formControlAlgo}>
+                  <InputLabel>Select algorithm type</InputLabel>
                   <Select
                     name="algorithmType"
                     value={algorithmType || ''}
                     onChange={this.handleAlgorithmTypeChange}
                   >
-
-                    {['simple', 'derivative', 'integrate', 'boolean'].map((type) => (
-                      <MenuItem
-                        key={type}
-                        value={type}
-                      >
-                        {type}
-                      </MenuItem>
-                    ))
-                    }
+                    {['simple', 'derivative', 'integrate', 'boolean'].map(
+                      type => (
+                        <MenuItem key={type} value={type}>
+                          {type}
+                        </MenuItem>
+                      )
+                    )}
                   </Select>
                 </FormControl>
               </ListItem>
               <Collapse in={algorithmType === 'simple'}>
                 <div>
                   <ListItem>
-                    <FormControl
+                    <TextField
+                      id="standard-basic"
+                      label="name"
                       variant="standard"
-                      fullWidth
+                      value={name}
+                      name="name"
                       className={classes.formControlAlgo}
-                    >
-                      <TextField
-                        id="standard-basic"
-                        label="name"
-                        variant="standard"
-                        value={name}
-                        name="name"
-                        onChange={this.handleNewAlgoChange}
-                      />
-                    </FormControl>
-                    <FormControl
+                      style={{ width: '50%' }}
+                      onChange={this.handleNewAlgoChange}
+                    />
+                    <TextField
+                      label="Formula"
                       variant="standard"
-                      fullWidth
-
-                    >
-                      <TextField
-                        label="Formula"
-                        variant="standard"
-                        name="formula"
-                        value={formula}
-                        onChange={this.handleNewAlgoChange}
-                      />
-                    </FormControl>
+                      name="formula"
+                      value={formula}
+                      className={classes.formControlAlgo}
+                      style={{ width: '50%' }}
+                      onChange={this.handleNewAlgoChange}
+                    />
                   </ListItem>
                   <ListItem>
-                    <FormControl
+                    <TextField
+                      id="standard-basic"
+                      label="Description"
                       variant="standard"
+                      multiline
+                      rows={4}
+                      value={desc}
+                      name="desc"
                       fullWidth
                       className={classes.formControlAlgo}
-                    >
-                      <TextField
-                        id="standard-basic"
-                        label="Description"
-                        variant="standard"
-                        multiline
-                        rows={4}
-                        value={desc}
-                        name="desc"
-                        onChange={this.handleNewAlgoChange}
-                      />
-                    </FormControl>
+                      onChange={this.handleNewAlgoChange}
+                    />
                   </ListItem>
-                  <ListItem>
+                  <ListItem className={classes.formControlAlgo}>
                     <MathJax.Context input="ascii">
                       <div>
                         <h6>Your Formula</h6>
-                        <MathJax.Node inline>{ formula }</MathJax.Node>
+                        <MathJax.Node inline>{formula}</MathJax.Node>
                       </div>
                     </MathJax.Context>
-                  </ListItem>
-                  <ListItem>
-                    <Button
-                      size="small"
-                      variant="contained"
-                      color="primary"
-                      startIcon={<Icon>save</Icon>}
-                      onClick={this.handleSave}
-                    >
-                      Save
-                    </Button>
                   </ListItem>
                 </div>
               </Collapse>
             </DialogContentText>
           </DialogContent>
+          <DialogActions>
+            <Button autoFocus color="primary" onClick={this.handleClose}>
+              Cancel
+            </Button>
+            <Button
+              color="primary"
+              disabled={algorithmType === ''}
+              onClick={this.handleSave}
+            >
+              Save
+            </Button>
+          </DialogActions>
         </Dialog>
       </div>
     );

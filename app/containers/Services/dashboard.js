@@ -7,7 +7,7 @@ const config = {
 };
 
 class DashboardServices {
-  save = dashboard => axios.post(`${API_URL}/dashboard/save&`, dashboard, config);
+  save = dashboard => axios.post(`${API_URL}/dashboard/save`, dashboard, config);
 
   getDataByRows = (tableName, rows) => axios.get(
     `${API_URL}/dashboard/data/getbyrows/${tableName}&${rows}`,

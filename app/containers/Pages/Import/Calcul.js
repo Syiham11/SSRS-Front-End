@@ -1,7 +1,5 @@
 import React, { Component } from 'react';
-import {
-  withStyles,
-} from '@material-ui/core';
+import { withStyles } from '@material-ui/core';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -15,7 +13,7 @@ class Calcul extends Component {
     isSpinnerShowed: false
   };
 
-  handleApplyAlgorithm = (info) => {
+  handleApplyAlgorithm = info => {
     const { currentAlgorithm } = info;
     const { tableData, setTableData } = this.props;
     const al = {
@@ -28,15 +26,18 @@ class Calcul extends Component {
     currentAlgorithm.variables.forEach(v => {
       variables = variables.concat(v.value + '-');
     });
-    AlgorithmsServices.ApplyAlgorithm(tableData, currentAlgorithm.result, currentAlgorithm.algo.algoId, variables).then(result => {
+    AlgorithmsServices.ApplyAlgorithm(
+      tableData,
+      currentAlgorithm.result,
+      currentAlgorithm.algo.algoId,
+      variables
+    ).then(result => {
       setTableData(result.data);
     });
-  }
+  };
 
   render() {
-    const {
-      isSpinnerShowed,
-    } = this.state;
+    const { isSpinnerShowed } = this.state;
     const { classes, tableData } = this.props;
     let keys = [];
     if (tableData[0] !== undefined) {
@@ -58,7 +59,10 @@ class Calcul extends Component {
             isSpinnerShowed ? { pointerEvents: 'none', opacity: '0.4' } : {}
           }
         >
-          <AlgorithmBlock columns={keys} applyFunction={this.handleApplyAlgorithm} />
+          <AlgorithmBlock
+            columns={keys}
+            applyFunction={this.handleApplyAlgorithm}
+          />
         </div>
       </div>
     );

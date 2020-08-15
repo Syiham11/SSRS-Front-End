@@ -9,17 +9,18 @@ const styles = theme => ({
   close: {
     width: theme.spacing(4),
     height: theme.spacing(4),
-    padding: 0,
-  },
+    padding: 0
+  }
 });
 
 class Notification extends React.Component {
   handleClose = (event, reason) => {
     const { close } = this.props;
+    console.log(reason);
     if (reason === 'clickaway') {
       return;
     }
-    close('crudTableDemo');
+    close();
   };
 
   render() {
@@ -28,13 +29,13 @@ class Notification extends React.Component {
       <Snackbar
         anchorOrigin={{
           vertical: 'bottom',
-          horizontal: 'left',
+          horizontal: 'left'
         }}
         open={message !== ''}
         autoHideDuration={3000}
         onClose={() => this.handleClose()}
         ContentProps={{
-          'aria-describedby': 'message-id',
+          'aria-describedby': 'message-id'
         }}
         message={message}
         action={[
@@ -46,7 +47,7 @@ class Notification extends React.Component {
             onClick={() => this.handleClose()}
           >
             <CloseIcon />
-          </IconButton>,
+          </IconButton>
         ]}
       />
     );
@@ -56,7 +57,7 @@ class Notification extends React.Component {
 Notification.propTypes = {
   classes: PropTypes.object.isRequired,
   close: PropTypes.func.isRequired,
-  message: PropTypes.string.isRequired,
+  message: PropTypes.string.isRequired
 };
 
 export default withStyles(styles)(Notification);

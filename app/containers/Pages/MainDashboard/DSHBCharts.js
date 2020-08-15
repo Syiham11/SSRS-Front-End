@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { addChart } from 'dan-actions/dashboardActions';
-import { withStyles, Fab } from '@material-ui/core';
+import { withStyles, Fab, Tooltip } from '@material-ui/core';
 import AddIcon from '@material-ui/icons/Add';
 import PropTypes from 'prop-types';
 import ChartBlock from './ChartBlock';
@@ -72,14 +72,16 @@ class VisualizationBlock extends Component {
     const { classes, charts } = this.props;
     return (
       <div>
-        <Fab
-          color="secondary"
-          aria-label="Add chart"
-          onClick={this.handleAddChart}
-          className={classes.iconButton}
-        >
-          <AddIcon />
-        </Fab>
+        <Tooltip title="Add chart" placement="top">
+          <Fab
+            color="secondary"
+            aria-label="Add chart"
+            onClick={this.handleAddChart}
+            className={classes.iconButton}
+          >
+            <AddIcon />
+          </Fab>
+        </Tooltip>
         <div className={classes.divInline}>
           {charts.map((row, index) => (
             <ChartBlock id={index} style={{ width: ' 50%' }} />
