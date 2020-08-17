@@ -11,12 +11,9 @@
   },
   "parser": "babel-eslint",
   "rules": {
-    "camelcase": [
-      1,
-      {
-        "properties": "never"
-      }
-    ],
+    "linebreak-style": 0,
+    "react/jsx-one-expression-per-line": "off",
+    "camelcase": [1, {"properties": "never"}],
     "no-nested-ternary": 0,
     "import/no-unresolved": 0,
     "import/no-named-as-default": 0,
