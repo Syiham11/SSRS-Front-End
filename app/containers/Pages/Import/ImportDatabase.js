@@ -28,12 +28,11 @@ import {
 } from 'dan-actions/importedDataActions';
 import Visibility from '@material-ui/icons/Visibility';
 import VisibilityOff from '@material-ui/icons/VisibilityOff';
+import axios from 'axios';
 import DoneOutlinedIcon from '@material-ui/icons/DoneOutlined';
 import PropTypes from 'prop-types';
-import ImportServices from '../../Services/import';
 import ListDialog from './ListDialog';
 import styles from './import-jss';
-import Notification from '../../../components/Notification/Notification';
 
 const databases = [
   { id: 'SQLServer', name: 'Microsoft SQL Server' },
@@ -43,6 +42,8 @@ const databases = [
   { id: 'MongoDB', name: 'MongoDB' },
   { id: 'MariaDB', name: 'MariaDB' }
 ];
+
+const apiURL = 'http://localhost:9000/import/database';
 
 class ImportDatabase extends Component {
   state = {
@@ -61,8 +62,7 @@ class ImportDatabase extends Component {
     testConnected: false,
     showPassword: false,
     listTables: [],
-    isImport: false,
-    notifMessage: ''
+    isImport: false
   };
 
   componentDidMount() {
@@ -95,17 +95,22 @@ class ImportDatabase extends Component {
       port,
       databaseName
     };
-    ImportServices.testConnection(connectionParam).then(response => {
-      if (response.data) {
-        this.setState({
-          testConnected: true
-        });
-      } else {
-        this.setState({
-          testConnected: false
-        });
-      }
-    });
+    const config = {
+      headers: { Authorization: sessionStorage.getItem('token') }
+    };
+    axios
+      .post(apiURL + '/testconnection', connectionParam, config)
+      .then(response => {
+        if (response.data) {
+          this.setState({
+            testConnected: true
+          });
+        } else {
+          this.setState({
+            testConnected: false
+          });
+        }
+      });
     setTimeout(() => {
       this.setState({
         isSpinnerShowed: false,
@@ -128,47 +133,50 @@ class ImportDatabase extends Component {
 
   handleConnect = () => {
     const {
-      username,
-      password,
-      host,
-      port,
-      databaseName,
-      selectedDatabaseType
+      username, password, host, port, databaseName
     } = this.state;
     this.setState({
       isSpinnerShowed: true
     });
     const connectionParam = {
       userId: '1',
-      type: selectedDatabaseType,
+      type: 'SQLServer',
       username,
       password,
       host,
       port,
       databaseName
     };
-    ImportServices.testConnection(connectionParam).then(response => {
-      if (response.data) {
-        this.setListTables(connectionParam);
-        setTimeout(() => {
-          this.setState({
-            isConnected: true,
-            isSpinnerShowed: false
-          });
-        }, 1000);
-      } else {
-        setTimeout(() => {
-          this.setState({
-            isSpinnerShowed: false
-          });
-        }, 1000);
-        alert('connection failed');
-      }
-    });
+    const config = {
+      headers: { Authorization: sessionStorage.getItem('token') }
+    };
+    axios
+      .post(apiURL + '/testconnection', connectionParam, config)
+      .then(response => {
+        if (response.data) {
+          this.setListTables(connectionParam);
+          setTimeout(() => {
+            this.setState({
+              isConnected: true,
+              isSpinnerShowed: false
+            });
+          }, 1000);
+        } else {
+          setTimeout(() => {
+            this.setState({
+              isSpinnerShowed: false
+            });
+          }, 1000);
+          alert('connection failed');
+        }
+      });
   };
 
   setListTables = connectionParam => {
-    ImportServices.getTables(connectionParam).then(response => {
+    const config = {
+      headers: { Authorization: sessionStorage.getItem('token') }
+    };
+    axios.post(apiURL + '/tables', connectionParam, config).then(response => {
       this.setState({
         listTables: response.data
       });
@@ -194,41 +202,36 @@ class ImportDatabase extends Component {
       password,
       host,
       port,
-      databaseName,
-      selectedDatabaseType
+      databaseName
     } = this.state;
     this.setState({
       isImport: true
     });
     const connectionParam = {
       userId: '1',
-      type: selectedDatabaseType,
+      type: 'SQLServer',
       username,
       password,
       host,
       port,
       databaseName
     };
-    ImportServices.getData(selectedTable, connectionParam).then(response => {
-      const data = [];
-      response.data.forEach(da => {
-        const dt = da;
-        if (dt._id) {
-          delete dt._id;
-        }
-        data.push(dt);
+    const config = {
+      headers: { Authorization: sessionStorage.getItem('token') }
+    };
+    axios
+      .post(apiURL + '/tables/' + selectedTable, connectionParam, config)
+      .then(response => {
+        setTableData(response.data);
+        setTableOriginalData(response.data);
+        setTableName(selectedTable);
+        setTimeout(() => {
+          this.setState({
+            isImport: false
+          });
+          handleNext();
+        }, 500);
       });
-      console.log(response);
-      setTableData(data);
-      setTableOriginalData(data);
-      setTableName(selectedTable);
-      setTimeout(() => {
-        this.setState({
-          isImport: false
-        });
-        handleNext();
-      }, 500);
-    });
   };
 
   handleOpenDialog = () => {
@@ -312,10 +315,12 @@ class ImportDatabase extends Component {
       port,
       databaseName
     };
-    ImportServices.saveSource(connectionParam).then(() => {
-      this.openNotif('Configurations are saved');
-      this.updateHistoryList();
-    });
+    const { sub } = JSON.parse(sessionStorage.getItem('user'));
+    const config = {
+      headers: { Authorization: sessionStorage.getItem('token') }
+    };
+    axios.post(apiURL + '/savesource&' + sub, connectionParam, config);
+    this.updateHistoryList();
   };
 
   handleLoad = () => {
@@ -325,30 +330,24 @@ class ImportDatabase extends Component {
   };
 
   handleDeleteDatabaseSource = dbs => {
-    ImportServices.deleteSource(dbs).then(response => {
+    const config = {
+      headers: { Authorization: sessionStorage.getItem('token') }
+    };
+    axios.post(apiURL + '/deletesource', dbs, config).then(response => {
       console.log(response.data);
       this.updateHistoryList();
     });
   };
 
   updateHistoryList = () => {
-    ImportServices.getSources().then(response => {
-      console.log(response.data);
+    const { sub } = JSON.parse(sessionStorage.getItem('user'));
+    const config = {
+      headers: { Authorization: sessionStorage.getItem('token') }
+    };
+    axios.get(apiURL + '/getsources&' + sub, config).then(response => {
       this.setState({
         historyDatabaseSources: response.data
       });
-    });
-  };
-
-  openNotif = message => {
-    this.setState({
-      notifMessage: message
-    });
-  };
-
-  closeNotif = () => {
-    this.setState({
-      notifMessage: ''
     });
   };
 
@@ -369,8 +368,7 @@ class ImportDatabase extends Component {
       showPassword,
       listTables,
       isImport,
-      historyDatabaseSources,
-      notifMessage
+      historyDatabaseSources
     } = this.state;
     const { classes } = this.props;
     return (
@@ -384,7 +382,6 @@ class ImportDatabase extends Component {
         ) : (
           <div />
         )}
-        <Notification message={notifMessage} close={this.closeNotif} />
         <div
           style={
             isSpinnerShowed ? { pointerEvents: 'none', opacity: '0.4' } : {}
