@@ -21,9 +21,8 @@ import {
   DialogContent,
   DialogContentText,
   Typography,
-  Collapse,
   DialogTitle,
-  DialogActions
+  DialogActions,
 } from '@material-ui/core';
 import { PropTypes } from 'prop-types';
 import _ from 'lodash';
@@ -32,7 +31,6 @@ import AddIcon from '@material-ui/icons/Add';
 import DoneAllIcon from '@material-ui/icons/DoneAll';
 import AlgorithmsServices from '../../Services/algorithm';
 import styles from './import-jss';
-import history from '../../../utils/history';
 
 class AlgorithmBlock extends React.Component {
   constructor(props) {
@@ -51,8 +49,10 @@ class AlgorithmBlock extends React.Component {
       newAlgo: {
         name: '',
         formula: '',
-        desc: ''
-      }
+        desc: '',
+        numberOfDerivative: 1,
+        parameter: ''
+      },
     };
   }
 
@@ -64,7 +64,6 @@ class AlgorithmBlock extends React.Component {
 
   handleApply = () => {
     const { currentAlgorithm } = this.state;
-    console.log(currentAlgorithm);
     const { applyFunction } = this.props;
     applyFunction({ currentAlgorithm });
   };
@@ -75,18 +74,30 @@ class AlgorithmBlock extends React.Component {
       algoDescription: '',
       algoName: '',
       algoFormula: '',
-      from: 0,
-      to: 0,
-      sign: '',
-      expression: ''
     };
     const {
-      newAlgo: { formula, name, desc }
+      newAlgo: {
+        formula,
+        name,
+        desc,
+        numberOfDerivative,
+        parameter
+      },
+      algorithmType
     } = this.state;
-    algo.algoType = 'simple';
+    algo.algoType = algorithmType;
     algo.algoDescription = desc;
     algo.algoName = name;
     algo.algoFormula = formula;
+    if (algorithmType === 'derivative') {
+      algo.algoDescription = `${desc}  ${formula} : derivative ${numberOfDerivative} times by ${parameter}`;
+      const formulaChecked = nerdamer(
+        `diff(${formula}, ${parameter}, ${
+          numberOfDerivative
+        })`
+      );
+      algo.algoFormula = formulaChecked.toString();
+    }
     AlgorithmsServices.saveAlgorithm(algo).then(alg => {
       console.log(alg.data);
       AlgorithmsServices.getAllAlgorithms().then(result => {
@@ -115,10 +126,6 @@ class AlgorithmBlock extends React.Component {
     this.setState({ currentAlgorithm });
   };
 
-  handleGoToAlgo = () => {
-    history.push('/app/algorithms');
-  };
-
   handleOpenForm = () => {
     const { open } = this.state;
     this.setState({ open: true });
@@ -143,16 +150,21 @@ class AlgorithmBlock extends React.Component {
     const { currentAlgorithm } = this.state;
     const currentAlgorithmT = currentAlgorithm;
     currentAlgorithmT.algo = ev.target.value;
-    const t = />=|<=|=|>|</g;
-    const formula = ev.target.value.algoFormula.replace(t, '+');
-    currentAlgorithmT.variables = _.reduce(
-      nerdamer(formula).variables(),
-      (result, n) => {
-        result.push({ name: n, value: '' });
-        return result;
-      },
-      []
-    );
+    console.log(currentAlgorithmT);
+    if (currentAlgorithmT.algo.algoType === 'integrate') {
+      currentAlgorithmT.variables = [{ name: 'from', value: '' }, { name: 'to', value: '' }];
+    } else {
+      const t = />=|<=|=|>|</g;
+      const formula = ev.target.value.algoFormula.replace(t, '+');
+      currentAlgorithmT.variables = _.reduce(
+        nerdamer(formula).variables(),
+        (result, n) => {
+          result.push({ name: n, value: '' });
+          return result;
+        },
+        []
+      );
+    }
     this.setState({ currentAlgorithm: currentAlgorithmT });
   };
 
@@ -169,7 +181,13 @@ class AlgorithmBlock extends React.Component {
       algorithms,
       open,
       algorithmType,
-      newAlgo: { name, formula, desc }
+      newAlgo: {
+        name,
+        formula,
+        desc,
+        numberOfDerivative,
+        parameter,
+      }
     } = this.state;
     return (
       <div>
@@ -214,6 +232,12 @@ class AlgorithmBlock extends React.Component {
                 </div>
               </MathJax.Context>
             </ListItem>
+            <ListItem>
+              <div className={classes.divCenter}>
+                Algorithm Type:
+                {currentAlgorithm.algo.algoType ? currentAlgorithm.algo.algoType : '' }
+              </div>
+            </ListItem>
           </Grid>
           <Grid item md={3}>
             <ListItem>
@@ -245,23 +269,25 @@ class AlgorithmBlock extends React.Component {
               />
             </ListItem>
             <Divider variant="middle" />
-            {currentAlgorithm.variables.map(v => (
-              <ListItem key={v.name}>
-                <FormControl fullWidth>
-                  <InputLabel>{v.name}</InputLabel>
-                  <Select
-                    value={v.value || ''}
-                    onChange={this.handleVariableChange(v)}
-                  >
-                    {columns.map(col => (
-                      <MenuItem key={col} value={col}>
-                        {col}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </ListItem>
-            ))}
+            {
+              currentAlgorithm.variables.map(v => (
+                <ListItem key={v.name}>
+                  <FormControl fullWidth>
+                    <InputLabel>{v.name}</InputLabel>
+                    <Select
+                      value={v.value || ''}
+                      onChange={this.handleVariableChange(v)}
+                    >
+                      {columns.map(col => (
+                        <MenuItem key={col} value={col}>
+                          {col}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </ListItem>
+              ))
+            }
           </Grid>
           <Grid item md={3}>
             <ListItem>
@@ -340,7 +366,74 @@ class AlgorithmBlock extends React.Component {
                   </Select>
                 </FormControl>
               </ListItem>
-              <Collapse in={algorithmType === 'simple'}>
+              {algorithmType === 'derivative' ? (
+                <div>
+                  <ListItem>
+                    <TextField
+                      id="standard-basic"
+                      label="name"
+                      variant="standard"
+                      value={name}
+                      name="name"
+                      className={classes.formControlAlgo}
+                      style={{ width: '50%' }}
+                      onChange={this.handleNewAlgoChange}
+                    />
+                    <TextField
+                      label="Formula"
+                      variant="standard"
+                      name="formula"
+                      value={formula}
+                      className={classes.formControlAlgo}
+                      style={{ width: '50%' }}
+                      onChange={this.handleNewAlgoChange}
+                    />
+                  </ListItem>
+                  <ListItem>
+                    <TextField
+                      label="number of derivative"
+                      variant="standard"
+                      name="numberOfDerivative"
+                      value={numberOfDerivative}
+                      type="number"
+                      className={classes.formControlAlgo}
+                      style={{ width: '50%' }}
+                      onChange={this.handleNewAlgoChange}
+                    />
+                    <TextField
+                      label="variable"
+                      variant="standard"
+                      name="parameter"
+                      value={parameter}
+                      className={classes.formControlAlgo}
+                      style={{ width: '50%' }}
+                      onChange={this.handleNewAlgoChange}
+                    />
+                  </ListItem>
+                  <ListItem>
+                    <TextField
+                      id="standard-basic"
+                      label="Description"
+                      variant="standard"
+                      multiline
+                      rows={4}
+                      value={desc}
+                      name="desc"
+                      fullWidth
+                      className={classes.formControlAlgo}
+                      onChange={this.handleNewAlgoChange}
+                    />
+                  </ListItem>
+                  <ListItem className={classes.formControlAlgo}>
+                    <MathJax.Context input="ascii">
+                      <div>
+                        <h6>Your Formula</h6>
+                        <MathJax.Node inline>{formula}</MathJax.Node>
+                      </div>
+                    </MathJax.Context>
+                  </ListItem>
+                </div>
+              ) : algorithmType === 'simple' || algorithmType === 'integrate' || algorithmType === 'boolean' ? (
                 <div>
                   <ListItem>
                     <TextField
@@ -386,7 +479,9 @@ class AlgorithmBlock extends React.Component {
                     </MathJax.Context>
                   </ListItem>
                 </div>
-              </Collapse>
+              ) : (
+                <div />
+              )}
             </DialogContentText>
           </DialogContent>
           <DialogActions>

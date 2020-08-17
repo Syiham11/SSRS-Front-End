@@ -85,7 +85,7 @@ class AlgorithmHome extends React.Component {
     AlgorithmsServices.getAllAlgorithms().then(result => {
       const colAlgo = [];
       Object.keys(result.data[0]).forEach(c => {
-        if (c !== 'algoId') {
+        if (c !== 'algoId' && c !== 'user') {
           const cl = {
             title: c,
             field: c
