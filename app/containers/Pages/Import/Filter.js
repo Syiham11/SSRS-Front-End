@@ -30,7 +30,13 @@ const textFilters = [
   { id: 'startWith', name: 'Starts with' },
   { id: 'contain', name: 'Contain' },
   { id: 'notcontain', name: 'Not contain' },
-  { id: 'endWith', name: 'Ends with' }
+  { id: 'endWith', name: 'Ends with' },
+  { id: 'replaceAt', name: 'Replace At' },
+  { id: 'upper', name: 'To upper' },
+  { id: 'lower', name: 'To lower' },
+  { id: 'cut', name: 'Cut' },
+  { id: 'concat', name: 'Concat' },
+  { id: 'trim', name: 'Trim' }
 ];
 
 const numericFilters = [
@@ -44,9 +50,13 @@ const numericFilters = [
 
 const dateFilters = [
   { id: 'before', name: 'Before' },
+  { id: 'after', name: 'After' },
   { id: 'in', name: 'In' },
   { id: 'except', name: 'Except' },
-  { id: 'after', name: 'After' }
+  { id: 'dateNow', name: 'Date Now' },
+  { id: 'dayDiff', name: 'Date difference(Day)' },
+  { id: 'monDiff', name: 'Date difference(Mon)' },
+  { id: 'getTime', name: 'Get time' },
 ];
 
 class Filter extends Component {
@@ -334,6 +344,7 @@ class Filter extends Component {
       let data = JSON.parse(JSON.stringify(tableData));
       textFiltersList.forEach(fil => {
         const newData = [];
+        console.log(data[0]);
         data.map(obj => {
           switch (fil.filter) {
             case 'Starts with':
@@ -355,6 +366,34 @@ class Filter extends Component {
               if (obj[fil.attribute].endsWith(fil.value)) {
                 newData.push(obj);
               }
+              break;
+            case 'Replace At':
+              // eslint-disable-next-line no-case-declarations
+              const param1 = fil.value.split(';');
+              if (typeof obj[fil.attribute] === 'string') obj[fil.attribute] = ((obj[fil.attribute]).substring(param1[0] - 1, (obj[fil.attribute]).length + 1).concat(param1[1]));
+              newData.push(obj);
+              break;
+            case 'Cut':
+              // eslint-disable-next-line no-case-declarations
+              const param = fil.value.split(';');
+              if (param[0] < param[1]) obj[fil.attribute] = ((obj[fil.attribute]).toString()).substring(param[0] - 1, param[1] - 1);
+              newData.push(obj);
+              break;
+            case 'To upper':
+              if (typeof obj[fil.attribute] === 'string') obj[fil.attribute] = (obj[fil.attribute]).toUpperCase();
+              newData.push(obj);
+              break;
+            case 'To lower':
+              if (typeof obj[fil.attribute] === 'string') obj[fil.attribute] = (obj[fil.attribute]).toLowerCase();
+              newData.push(obj);
+              break;
+            case 'Concat':
+              if (typeof obj[fil.attribute] === 'string') obj[fil.attribute] = (obj[fil.attribute]).concat(fil.value);
+              newData.push(obj);
+              break;
+            case 'Trim':
+              if (typeof obj[fil.attribute] === 'string') obj[fil.attribute] = (obj[fil.attribute]).trim();
+              newData.push(obj);
               break;
             default:
           }
@@ -431,6 +470,34 @@ class Filter extends Component {
               if (objValue > filterValue) {
                 newData.push(obj);
               }
+              break;
+            case 'Date Now':
+              obj[fil.attribute] = new Date(Date.now()).toLocaleString();
+              newData.push(obj);
+              break;
+            case 'Date difference(Day)':
+              // eslint-disable-next-line no-case-declarations
+              const seconds = filterValue - objValue;
+              // eslint-disable-next-line no-case-declarations
+              const days = Math.floor((seconds / (24 * 3600000)));
+              // eslint-disable-next-line no-param-reassign
+              obj[fil.attribute] = days + ' day';
+              newData.push(obj);
+              break;
+            case 'Date difference(Mon)':
+              // eslint-disable-next-line no-case-declarations
+              const seconds1 = filterValue - objValue;
+              // eslint-disable-next-line no-case-declarations
+              const days1 = Math.floor((seconds1 / (24 * 3600000)));
+              // eslint-disable-next-line no-case-declarations
+              const months = Math.floor(days1 / 30);
+              // eslint-disable-next-line no-param-reassign
+              obj[fil.attribute] = months + ' Month';
+              newData.push(obj);
+              break;
+            case 'Get time':
+              obj[fil.attribute] = Date.now();
+              newData.push(obj);
               break;
             default:
           }
@@ -565,7 +632,7 @@ class Filter extends Component {
                     </FormControl>
                     <TextField
                       id="outlined-basic"
-                      label="Insert value"
+                      label="Insert value seperated by ;"
                       variant="outlined"
                       style={{ minWidth: '25%' }}
                       value={row.value}
@@ -588,7 +655,6 @@ class Filter extends Component {
                     aria-label="Add"
                     className={classes.margin}
                     onClick={() => this.handleAddFilter('text')}
-                    size="large"
                   >
                     <AddCircleOutlineIcon />
                   </IconButton>
@@ -680,7 +746,6 @@ class Filter extends Component {
                     aria-label="Add"
                     className={classes.margin}
                     onClick={() => this.handleAddFilter('numeric')}
-                    size="large"
                   >
                     <AddCircleOutlineIcon />
                   </IconButton>
@@ -778,7 +843,6 @@ class Filter extends Component {
                     aria-label="Add"
                     className={classes.margin}
                     onClick={() => this.handleAddFilter('date')}
-                    size="large"
                   >
                     <AddCircleOutlineIcon />
                   </IconButton>
