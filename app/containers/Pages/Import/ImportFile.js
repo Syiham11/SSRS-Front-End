@@ -55,7 +55,7 @@ class ImportFile extends Component {
 
   handleChange = () => {
     this.setState({ selectedFileName: inputFile.current.files[0].innerHTML });
-    reader.readAsDataURL(inputFile.current.files[0]);
+    console.log(reader.readAsDataURL(inputFile.current.files[0]));
   };
 
   handleImportClick = () => {

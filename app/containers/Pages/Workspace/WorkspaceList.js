@@ -18,11 +18,11 @@ import {
   DialogTitle,
   DialogContent,
   DialogContentText,
-  DialogActions, Dialog,
+  DialogActions,
+  Dialog,
   Checkbox
 } from '@material-ui/core';
 import WorkspaceServices from '../../Services/workspace';
-
 
 class WorkspaceList extends Component {
   state = {
@@ -165,8 +165,20 @@ class WorkspaceList extends Component {
             <AddCircleOutlineIcon />
           </IconButton>
           <Divider variant="fullWidth" />
-          <div style={{ textAlign: 'center', alignItems: 'center', alignContent: 'center' }}>
-            <Typography variant="h6" color="primary" style={{ marginTop: '10px' }}>Workspaces shared with you</Typography>
+          <div
+            style={{
+              textAlign: 'center',
+              alignItems: 'center',
+              alignContent: 'center'
+            }}
+          >
+            <Typography
+              variant="h6"
+              color="primary"
+              style={{ marginTop: '10px' }}
+            >
+              Workspaces shared with you
+            </Typography>
           </div>
           <Table aria-label="Formulas">
             <TableHead>
@@ -210,11 +222,7 @@ class WorkspaceList extends Component {
           <DialogTitle id="alert-dialog-title">Share workspace</DialogTitle>
           <DialogContent>
             <DialogContentText id="alert-dialog-slide-description">
-              <Typography
-                variant="caption"
-                gutterBottom
-                align="center"
-              >
+              <Typography variant="caption" gutterBottom align="center">
                 Choose users
               </Typography>
               <Table aria-label="Formulas">
@@ -226,12 +234,10 @@ class WorkspaceList extends Component {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {workspaces.map((row) => (
+                  {workspaces.map(row => (
                     <TableRow key={row.name}>
                       <TableCell padding="checkbox">
-                        <Checkbox
-                          checked
-                        />
+                        <Checkbox checked />
                       </TableCell>
                       <TableCell align="left">{row.creationTime}</TableCell>
                     </TableRow>
@@ -244,10 +250,7 @@ class WorkspaceList extends Component {
             <Button autoFocus color="primary" onClick={this.handleClose}>
               Cancel
             </Button>
-            <Button
-              color="primary"
-              onClick={this.handleSave}
-            >
+            <Button color="primary" onClick={this.handleSave}>
               Save
             </Button>
           </DialogActions>

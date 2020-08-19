@@ -56,7 +56,7 @@ const dateFilters = [
   { id: 'dateNow', name: 'Date Now' },
   { id: 'dayDiff', name: 'Date difference(Day)' },
   { id: 'monDiff', name: 'Date difference(Mon)' },
-  { id: 'getTime', name: 'Get time' },
+  { id: 'getTime', name: 'Get time' }
 ];
 
 class Filter extends Component {
@@ -370,29 +370,37 @@ class Filter extends Component {
             case 'Replace At':
               // eslint-disable-next-line no-case-declarations
               const param1 = fil.value.split(';');
-              if (typeof obj[fil.attribute] === 'string') obj[fil.attribute] = ((obj[fil.attribute]).substring(param1[0] - 1, (obj[fil.attribute]).length + 1).concat(param1[1]));
+              if (typeof obj[fil.attribute] === 'string') {
+                obj[fil.attribute] = obj[fil.attribute]
+                  .substring(param1[0] - 1, obj[fil.attribute].length + 1)
+                  .concat(param1[1]);
+              }
               newData.push(obj);
               break;
             case 'Cut':
               // eslint-disable-next-line no-case-declarations
               const param = fil.value.split(';');
-              if (param[0] < param[1]) obj[fil.attribute] = ((obj[fil.attribute]).toString()).substring(param[0] - 1, param[1] - 1);
+              if (param[0] < param[1]) {
+                obj[fil.attribute] = obj[fil.attribute]
+                  .toString()
+                  .substring(param[0] - 1, param[1] - 1);
+              }
               newData.push(obj);
               break;
             case 'To upper':
-              if (typeof obj[fil.attribute] === 'string') obj[fil.attribute] = (obj[fil.attribute]).toUpperCase();
+              if (typeof obj[fil.attribute] === 'string') obj[fil.attribute] = obj[fil.attribute].toUpperCase();
               newData.push(obj);
               break;
             case 'To lower':
-              if (typeof obj[fil.attribute] === 'string') obj[fil.attribute] = (obj[fil.attribute]).toLowerCase();
+              if (typeof obj[fil.attribute] === 'string') obj[fil.attribute] = obj[fil.attribute].toLowerCase();
               newData.push(obj);
               break;
             case 'Concat':
-              if (typeof obj[fil.attribute] === 'string') obj[fil.attribute] = (obj[fil.attribute]).concat(fil.value);
+              if (typeof obj[fil.attribute] === 'string') obj[fil.attribute] = obj[fil.attribute].concat(fil.value);
               newData.push(obj);
               break;
             case 'Trim':
-              if (typeof obj[fil.attribute] === 'string') obj[fil.attribute] = (obj[fil.attribute]).trim();
+              if (typeof obj[fil.attribute] === 'string') obj[fil.attribute] = obj[fil.attribute].trim();
               newData.push(obj);
               break;
             default:
@@ -479,7 +487,7 @@ class Filter extends Component {
               // eslint-disable-next-line no-case-declarations
               const seconds = filterValue - objValue;
               // eslint-disable-next-line no-case-declarations
-              const days = Math.floor((seconds / (24 * 3600000)));
+              const days = Math.floor(seconds / (24 * 3600000));
               // eslint-disable-next-line no-param-reassign
               obj[fil.attribute] = days + ' day';
               newData.push(obj);
@@ -488,7 +496,7 @@ class Filter extends Component {
               // eslint-disable-next-line no-case-declarations
               const seconds1 = filterValue - objValue;
               // eslint-disable-next-line no-case-declarations
-              const days1 = Math.floor((seconds1 / (24 * 3600000)));
+              const days1 = Math.floor(seconds1 / (24 * 3600000));
               // eslint-disable-next-line no-case-declarations
               const months = Math.floor(days1 / 30);
               // eslint-disable-next-line no-param-reassign

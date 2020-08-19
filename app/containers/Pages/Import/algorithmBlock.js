@@ -22,7 +22,7 @@ import {
   DialogContentText,
   Typography,
   DialogTitle,
-  DialogActions,
+  DialogActions
 } from '@material-ui/core';
 import { PropTypes } from 'prop-types';
 import _ from 'lodash';
@@ -52,7 +52,7 @@ class AlgorithmBlock extends React.Component {
         desc: '',
         numberOfDerivative: 1,
         parameter: ''
-      },
+      }
     };
   }
 
@@ -73,15 +73,11 @@ class AlgorithmBlock extends React.Component {
       algoType: '',
       algoDescription: '',
       algoName: '',
-      algoFormula: '',
+      algoFormula: ''
     };
     const {
       newAlgo: {
-        formula,
-        name,
-        desc,
-        numberOfDerivative,
-        parameter
+        formula, name, desc, numberOfDerivative, parameter
       },
       algorithmType
     } = this.state;
@@ -92,9 +88,7 @@ class AlgorithmBlock extends React.Component {
     if (algorithmType === 'derivative') {
       algo.algoDescription = `${desc}  ${formula} : derivative ${numberOfDerivative} times by ${parameter}`;
       const formulaChecked = nerdamer(
-        `diff(${formula}, ${parameter}, ${
-          numberOfDerivative
-        })`
+        `diff(${formula}, ${parameter}, ${numberOfDerivative})`
       );
       algo.algoFormula = formulaChecked.toString();
     }
@@ -152,7 +146,10 @@ class AlgorithmBlock extends React.Component {
     currentAlgorithmT.algo = ev.target.value;
     console.log(currentAlgorithmT);
     if (currentAlgorithmT.algo.algoType === 'integrate') {
-      currentAlgorithmT.variables = [{ name: 'from', value: '' }, { name: 'to', value: '' }];
+      currentAlgorithmT.variables = [
+        { name: 'from', value: '' },
+        { name: 'to', value: '' }
+      ];
     } else {
       const t = />=|<=|=|>|</g;
       const formula = ev.target.value.algoFormula.replace(t, '+');
@@ -182,11 +179,7 @@ class AlgorithmBlock extends React.Component {
       open,
       algorithmType,
       newAlgo: {
-        name,
-        formula,
-        desc,
-        numberOfDerivative,
-        parameter,
+        name, formula, desc, numberOfDerivative, parameter
       }
     } = this.state;
     return (
@@ -222,8 +215,7 @@ class AlgorithmBlock extends React.Component {
             <ListItem>
               <MathJax.Context input="ascii">
                 <div className={classes.divCenter}>
-                  Your formula:
-                  {' '}
+                  {'Your formula: '}
                   <MathJax.Node inline>
                     {currentAlgorithm.algo.algoFormula
                       ? currentAlgorithm.algo.algoFormula
@@ -235,7 +227,9 @@ class AlgorithmBlock extends React.Component {
             <ListItem>
               <div className={classes.divCenter}>
                 Algorithm Type:
-                {currentAlgorithm.algo.algoType ? currentAlgorithm.algo.algoType : '' }
+                {currentAlgorithm.algo.algoType
+                  ? currentAlgorithm.algo.algoType
+                  : ''}
               </div>
             </ListItem>
           </Grid>
@@ -269,25 +263,23 @@ class AlgorithmBlock extends React.Component {
               />
             </ListItem>
             <Divider variant="middle" />
-            {
-              currentAlgorithm.variables.map(v => (
-                <ListItem key={v.name}>
-                  <FormControl fullWidth>
-                    <InputLabel>{v.name}</InputLabel>
-                    <Select
-                      value={v.value || ''}
-                      onChange={this.handleVariableChange(v)}
-                    >
-                      {columns.map(col => (
-                        <MenuItem key={col} value={col}>
-                          {col}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                </ListItem>
-              ))
-            }
+            {currentAlgorithm.variables.map(v => (
+              <ListItem key={v.name}>
+                <FormControl fullWidth>
+                  <InputLabel>{v.name}</InputLabel>
+                  <Select
+                    value={v.value || ''}
+                    onChange={this.handleVariableChange(v)}
+                  >
+                    {columns.map(col => (
+                      <MenuItem key={col} value={col}>
+                        {col}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </ListItem>
+            ))}
           </Grid>
           <Grid item md={3}>
             <ListItem>
@@ -433,55 +425,57 @@ class AlgorithmBlock extends React.Component {
                     </MathJax.Context>
                   </ListItem>
                 </div>
-              ) : algorithmType === 'simple' || algorithmType === 'integrate' || algorithmType === 'boolean' ? (
-                <div>
-                  <ListItem>
-                    <TextField
-                      id="standard-basic"
-                      label="name"
-                      variant="standard"
-                      value={name}
-                      name="name"
-                      className={classes.formControlAlgo}
-                      style={{ width: '50%' }}
-                      onChange={this.handleNewAlgoChange}
-                    />
-                    <TextField
-                      label="Formula"
-                      variant="standard"
-                      name="formula"
-                      value={formula}
-                      className={classes.formControlAlgo}
-                      style={{ width: '50%' }}
-                      onChange={this.handleNewAlgoChange}
-                    />
-                  </ListItem>
-                  <ListItem>
-                    <TextField
-                      id="standard-basic"
-                      label="Description"
-                      variant="standard"
-                      multiline
-                      rows={4}
-                      value={desc}
-                      name="desc"
-                      fullWidth
-                      className={classes.formControlAlgo}
-                      onChange={this.handleNewAlgoChange}
-                    />
-                  </ListItem>
-                  <ListItem className={classes.formControlAlgo}>
-                    <MathJax.Context input="ascii">
-                      <div>
-                        <h6>Your Formula</h6>
-                        <MathJax.Node inline>{formula}</MathJax.Node>
-                      </div>
-                    </MathJax.Context>
-                  </ListItem>
-                </div>
-              ) : (
-                <div />
-              )}
+              ) : algorithmType === 'simple'
+                || algorithmType === 'integrate'
+                || algorithmType === 'boolean' ? (
+                  <div>
+                    <ListItem>
+                      <TextField
+                        id="standard-basic"
+                        label="name"
+                        variant="standard"
+                        value={name}
+                        name="name"
+                        className={classes.formControlAlgo}
+                        style={{ width: '50%' }}
+                        onChange={this.handleNewAlgoChange}
+                      />
+                      <TextField
+                        label="Formula"
+                        variant="standard"
+                        name="formula"
+                        value={formula}
+                        className={classes.formControlAlgo}
+                        style={{ width: '50%' }}
+                        onChange={this.handleNewAlgoChange}
+                      />
+                    </ListItem>
+                    <ListItem>
+                      <TextField
+                        id="standard-basic"
+                        label="Description"
+                        variant="standard"
+                        multiline
+                        rows={4}
+                        value={desc}
+                        name="desc"
+                        fullWidth
+                        className={classes.formControlAlgo}
+                        onChange={this.handleNewAlgoChange}
+                      />
+                    </ListItem>
+                    <ListItem className={classes.formControlAlgo}>
+                      <MathJax.Context input="ascii">
+                        <div>
+                          <h6>Your Formula</h6>
+                          <MathJax.Node inline>{formula}</MathJax.Node>
+                        </div>
+                      </MathJax.Context>
+                    </ListItem>
+                  </div>
+                ) : (
+                  <div />
+                )}
             </DialogContentText>
           </DialogContent>
           <DialogActions>
