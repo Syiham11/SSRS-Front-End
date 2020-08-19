@@ -12,13 +12,22 @@ import {
   TableHead,
   TableCell,
   TableRow,
-  IconButton
+  IconButton,
+  Divider,
+  Typography,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions, Dialog,
+  Checkbox
 } from '@material-ui/core';
 import WorkspaceServices from '../../Services/workspace';
 
+
 class WorkspaceList extends Component {
   state = {
-    workspaces: []
+    workspaces: [],
+    open: false
   };
 
   componentDidMount() {
@@ -52,6 +61,15 @@ class WorkspaceList extends Component {
       setWorkspaceTitle(workspaces[index].title);
       handleSetType('visualize');
     });
+  };
+
+  handleOpenUsersDialog = (workspaceId, index) => {
+    console.log(workspaceId, 'tout => ', index);
+    this.setState({ open: true });
+  };
+
+  handleClose = () => {
+    this.setState({ open: false });
   };
 
   handleDeleteWorkspace = workspace => {
@@ -88,7 +106,7 @@ class WorkspaceList extends Component {
   };
 
   render() {
-    const { workspaces } = this.state;
+    const { workspaces, open } = this.state;
     return (
       <div>
         <PapperBlock
@@ -122,7 +140,15 @@ class WorkspaceList extends Component {
                     </Button>
                     <Button
                       value={index}
+                      onClick={() => this.handleOpenUsersDialog(row.workspaceId, index)
+                      }
+                    >
+                      Share
+                    </Button>
+                    <Button
+                      value={index}
                       onClick={() => this.handleDeleteWorkspace(row)}
+                      color="primary"
                     >
                       delete
                     </Button>
@@ -138,7 +164,94 @@ class WorkspaceList extends Component {
           >
             <AddCircleOutlineIcon />
           </IconButton>
+          <Divider variant="fullWidth" />
+          <div style={{ textAlign: 'center', alignItems: 'center', alignContent: 'center' }}>
+            <Typography variant="h6" color="primary" style={{ marginTop: '10px' }}>Workspaces shared with you</Typography>
+          </div>
+          <Table aria-label="Formulas">
+            <TableHead>
+              <TableRow>
+                <TableCell>Title</TableCell>
+                <TableCell align="left">Creation time</TableCell>
+                <TableCell />
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {workspaces.map((row, index) => (
+                <TableRow key={row.name}>
+                  <TableCell component="th" scope="row">
+                    {row.title}
+                  </TableCell>
+                  <TableCell align="left">{row.creationTime}</TableCell>
+                  <TableCell align="right" scope="row">
+                    <Button
+                      value={index}
+                      onClick={() => this.handleOpenWorkspace(row.workspaceId, index)
+                      }
+                    >
+                      Open
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </PapperBlock>
+        <Dialog
+          open={open}
+          disableBackdropClick
+          disableEscapeKeyDown
+          onClose={this.handleClose}
+          aria-labelledby="alert-dialog-slide-title"
+          aria-describedby="alert-dialog-slide-description"
+          fullWidth
+          maxWidth="sm"
+        >
+          <DialogTitle id="alert-dialog-title">Share workspace</DialogTitle>
+          <DialogContent>
+            <DialogContentText id="alert-dialog-slide-description">
+              <Typography
+                variant="caption"
+                gutterBottom
+                align="center"
+              >
+                Choose users
+              </Typography>
+              <Table aria-label="Formulas">
+                <TableHead>
+                  <TableRow>
+                    <TableCell />
+                    <TableCell>Email</TableCell>
+                    <TableCell />
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {workspaces.map((row) => (
+                    <TableRow key={row.name}>
+                      <TableCell padding="checkbox">
+                        <Checkbox
+                          checked
+                        />
+                      </TableCell>
+                      <TableCell align="left">{row.creationTime}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button autoFocus color="primary" onClick={this.handleClose}>
+              Cancel
+            </Button>
+            <Button
+              color="primary"
+              onClick={this.handleSave}
+            >
+              Save
+            </Button>
+          </DialogActions>
+        </Dialog>
       </div>
     );
   }
