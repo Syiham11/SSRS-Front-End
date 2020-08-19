@@ -8,12 +8,15 @@ import {
   Dialog,
   Tooltip,
   IconButton
+  // TextField,
+  // InputAdornment
 } from '@material-ui/core';
 import VisibilityIcon from '@material-ui/icons/Visibility';
 import avatarApi from 'dan-api/images/avatars';
+// import SearchIcon from '@material-ui/icons/Search';
 import ListItemAvatar from '@material-ui/core/ListItemAvatar';
 import PropTypes from 'prop-types';
-// import InfiniteScroll from 'react-infinite-scroller';
+import InfiniteScroll from 'react-infinite-scroller';
 import styles from './Dashboard-jss';
 import PapperBlock from '../../../components/PapperBlock/PapperBlock';
 import UserProfile from '../UserProfile';
@@ -23,40 +26,29 @@ class UserList extends Component {
   state = {
     users: [],
     userIndex: -1,
-    isViewProfile: false
-    // lastIndex: 10,
-    // hasNext: true
+    isViewProfile: false,
+    lastPage: 0,
+    hasNext: true
   };
 
-  componentDidMount() {
-    UserServices.getUsersByRange(0, 4).then(response => {
-      /* if (response.data < 10) {
+  componentDidMount() {}
+
+  fetchMoreData = () => {
+    const { lastPage, users, hasNext } = this.state;
+    if (hasNext) {
+      UserServices.getUsersByRange(lastPage, 10).then(response => {
+        console.log(response.data.length);
+        if (response.data.length === 0) {
+          console.log('empty');
           this.setState({
-            users: response.data,
             hasNext: false
           });
         } else {
           this.setState({
-            users: response.data
+            users: users.concat(response.data),
+            lastPage: lastPage + 1
           });
-        } */
-
-      this.setState({
-        users: response.data
-      });
-    });
-  }
-
-  fetchMoreData = () => {
-    const { lastIndex, users, hasNext } = this.state;
-    const newIndex = lastIndex + 1;
-    if (hasNext) {
-      UserServices.getUsersByRange(newIndex, 4).then(response => {
-        console.log(response.data);
-        this.setState({
-          users: users.concat(response.data),
-          lastIndex: lastIndex + 10
-        });
+        }
       });
     }
   };
@@ -77,9 +69,7 @@ class UserList extends Component {
   render() {
     const { classes } = this.props;
     const {
-      users,
-      userIndex,
-      isViewProfile // hasNext
+      users, userIndex, isViewProfile, hasNext
     } = this.state;
     return (
       <div
@@ -114,58 +104,88 @@ class UserList extends Component {
           icon="ios-person"
           desc="New users account needs to be approuved"
         >
-          <Paper className={classes.taskInnerDiv}>
-            {/* <InfiniteScroll
+          {/* <TextField
+            id="input-with-icon-textfield"
+            type="search"
+            value="filter"
+            onChange={this.handleChangeSearch}
+            className={classes.searchBox}
+            InputProps={{
+              placeholder: 'Search',
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon />
+                </InputAdornment>
+              )
+            }}
+          /> */}
+          <Paper
+            className={classes.taskInnerDiv}
+            ref={ref => {
+              this.scrollParentRef = ref;
+            }}
+          >
+            <InfiniteScroll
               pageStart={0}
               loadMore={this.fetchMoreData}
               hasMore={hasNext}
-              loader={<h4>Loading...</h4>}
-            > */}
-            {users.map((user, index) => (
-              <div
-                className={classes.divSpace}
-                style={{ padding: '10px 10px 10px 10px' }}
-              >
-                <div className={classes.divInline}>
-                  <div>
-                    <ListItemAvatar>
-                      <Avatar
-                        alt="User Name"
-                        src={user.image === '' ? avatarApi[8] : user.image}
-                      />
-                    </ListItemAvatar>
+              loader={(
+                <div className={classes.divCenter}>
+                  <img
+                    src="/images/spinner.gif"
+                    alt="spinner"
+                    style={{ width: '40px', height: '40px' }}
+                  />
+                </div>
+              )}
+              useWindow={false}
+              getScrollParent={() => this.scrollParentRef}
+            >
+              {users.map((user, index) => (
+                <div
+                  className={classes.divSpace}
+                  style={{ padding: '10px 10px 10px 10px' }}
+                >
+                  <div className={classes.divInline}>
+                    <div>
+                      <ListItemAvatar>
+                        <Avatar
+                          alt="User Name"
+                          src={user.image === '' ? avatarApi[8] : user.image}
+                        />
+                      </ListItemAvatar>
+                    </div>
+                    <div>
+                      <Typography
+                        id={'title' + index}
+                        variant="body1"
+                        gutterBottom
+                      >
+                        {user.username}
+                      </Typography>
+                      <Typography
+                        id={'desc' + index}
+                        variant="body2"
+                        gutterBottom
+                      >
+                        {user.email}
+                      </Typography>
+                    </div>
                   </div>
                   <div>
-                    <Typography
-                      id={'title' + index}
-                      variant="body1"
-                      gutterBottom
-                    >
-                      {user.username}
-                    </Typography>
-                    <Typography
-                      id={'desc' + index}
-                      variant="body2"
-                      gutterBottom
-                    >
-                      {user.email}
-                    </Typography>
+                    <Tooltip title="View profile">
+                      <IconButton
+                        aria-label="viewProfile"
+                        className={classes.margin}
+                        onClick={() => this.handleViewProfile(index)}
+                      >
+                        <VisibilityIcon />
+                      </IconButton>
+                    </Tooltip>
                   </div>
                 </div>
-                <div>
-                  <Tooltip title="View profile">
-                    <IconButton
-                      aria-label="viewProfile"
-                      className={classes.margin}
-                      onClick={() => this.handleViewProfile(index)}
-                    >
-                      <VisibilityIcon />
-                    </IconButton>
-                  </Tooltip>
-                </div>
-              </div>
-            ))}
-            {/* </InfiniteScroll> */}
+              ))}
+            </InfiniteScroll>
           </Paper>
         </PapperBlock>
       </div>

@@ -68,7 +68,7 @@ class WorkspaceComponent extends Component {
               <VisualizationBlocks handleSetType={this.handleSetType} />
             </Collapse>
             <Collapse in={type === 'report'}>
-              <ReportEditor handleSetType={this.handleSetType} />
+              <ReportEditor handleSetType={this.handleSetType} type={type} />
             </Collapse>
             {' '}
           </div>

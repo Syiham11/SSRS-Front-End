@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import {
-  Button,
   withStyles,
   List,
   ListItem,
@@ -12,7 +11,13 @@ import {
   TableBody,
   TableCell,
   TableHead,
-  TableRow
+  TableRow,
+  Tooltip,
+  IconButton,
+  DialogContent,
+  DialogActions,
+  Typography,
+  Button
 } from '@material-ui/core';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
@@ -22,6 +27,17 @@ import ReactQuill from 'react-quill';
 import * as am4core from '@amcharts/amcharts4/core';
 import 'react-quill/dist/quill.bubble.css';
 import interact from 'interactjs';
+import TextFieldsIcon from '@material-ui/icons/TextFields';
+import EqualizerIcon from '@material-ui/icons/Equalizer';
+import TableChartIcon from '@material-ui/icons/TableChart';
+import SaveIcon from '@material-ui/icons/Save';
+import PublishIcon from '@material-ui/icons/Publish';
+import PictureAsPdfIcon from '@material-ui/icons/PictureAsPdf';
+import CancelPresentationIcon from '@material-ui/icons/CancelPresentation';
+import NavigateBeforeIcon from '@material-ui/icons/NavigateBefore';
+import NavigateNextIcon from '@material-ui/icons/NavigateNext';
+import PostAddIcon from '@material-ui/icons/PostAdd';
+import DeleteForeverIcon from '@material-ui/icons/DeleteForever';
 import ListDialog from './ListDialog';
 import ReportServices from '../../Services/report';
 
@@ -31,6 +47,11 @@ const styles = theme => ({
     background: 'transparent',
     position: 'absolute',
     borderRadius: '10px'
+  },
+  circularProgress: {
+    position: 'fixed',
+    top: 'calc(50% - 75px)',
+    left: 'calc(50% - 75px)'
   },
   imagearea: {
     border: 'none',
@@ -42,6 +63,7 @@ const styles = theme => ({
   divSpace: {
     display: 'flex',
     justifyContent: 'space-between',
+    alignItems: 'center',
     [theme.breakpoints.down('xs')]: {
       flexDirection: 'column',
       '& button': {
@@ -50,6 +72,12 @@ const styles = theme => ({
       }
     }
   },
+  divCenter: {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexDirection: 'column'
+  },
   button: {
     background: 'none',
     padding: 0,
@@ -57,7 +85,7 @@ const styles = theme => ({
     transition: 'color ease 0.3s',
     fontWeight: theme.typography.fontWeightRegular,
     height: 40,
-    width: '10%',
+    width: '7%',
     margin: theme.spacing(2),
     fontSize: '18px',
     '&:hover': {
@@ -110,14 +138,26 @@ export class ReportEditor extends Component {
     id: 0,
     openDialog: false,
     historyDialogOpen: false,
+    isGeneratePdf: false,
+    isSpinnerShowed: false,
+    isLoadTemplate: false,
     dialogType: '',
     clickedItem: 0,
     templates: [],
     selectedElement: -1,
-    historyTemplates: []
+    historyTemplates: [],
+    chartImages: [],
+    chartTableElements: {
+      chartTables: [],
+      keys: []
+    },
+    pages: [0],
+    currentPageIndex: 0,
+    currentPageNumber: 0
   };
 
   componentDidMount() {
+    this.updateReportData();
     this.updateHistoryList();
     interact('[id^=element]')
       .draggable({
@@ -125,8 +165,8 @@ export class ReportEditor extends Component {
         // enable autoScroll
         autoScroll: true,
         restrict: {
-          restriction: '#divToPrint',
-          drag: document.getElementById('divToPrint'),
+          restriction: '#editorSpace',
+          drag: document.getElementById('editorSpace'),
           endOnly: true,
           elementRect: {
             top: 0,
@@ -159,7 +199,6 @@ export class ReportEditor extends Component {
             target.style.height = event.rect.height + 'px';
             x += event.deltaRect.left;
             y += event.deltaRect.top;
-
             target.style.webkitTransform = 'translate(' + x + 'px,' + y + 'px)';
             target.style.transform = 'translate(' + x + 'px,' + y + 'px)';
             target.setAttribute('data-x', x);
@@ -168,6 +207,60 @@ export class ReportEditor extends Component {
         }
       });
   }
+
+  /* eslint-disable*/
+  componentDidUpdate(PreviousProps) {
+    const { chartList } = this.props;
+    const { isSpinnerShowed, isLoadTemplate, pages } = this.state;
+    if (PreviousProps.chartList !== chartList) {
+      setTimeout(() => {
+        this.updateReportData();
+      }, 500);
+    }
+    if (isSpinnerShowed) {
+      setTimeout(() => {
+        this.handleSetSizeAndPosition('previewElement');
+      }, 500);
+    }
+    if (isLoadTemplate) {
+      setTimeout(() => {
+        this.handleSetSizeAndPosition('element');
+      }, 500);
+    }
+  }
+  /* eslint-enable */
+
+  updateReportData = () => {
+    const { chartList } = this.props;
+    const chartImages = [];
+    const chartTables = [];
+    const keys = [];
+    chartList.forEach(obj => {
+      if (obj.settings.choosedChart !== '') {
+        const chartKeys = [];
+        const chart = am4core.registry.baseSprites[obj.id];
+        if (chart) {
+          const { data } = chart;
+          chartTables.push(data);
+          chart.exporting.getImage('png').then(imageData => {
+            chartImages.push(imageData);
+          });
+          chartKeys.push(chart.xAxes.getIndex(0).dataFields.category);
+          for (let i = 0; i < chart.series.length; i += 1) {
+            chartKeys.push(chart.series.getIndex(i).dataFields.valueY);
+          }
+          keys.push(chartKeys);
+        }
+      }
+    });
+    this.setState({
+      chartImages,
+      chartTableElements: {
+        chartTables,
+        keys
+      }
+    });
+  };
 
   dragMoveListener = event => {
     const { target } = event;
@@ -182,13 +275,83 @@ export class ReportEditor extends Component {
     target.setAttribute('data-y', y);
   };
 
+  openGeneratePdfDialog = () => {
+    const { currentPageNumber } = this.state;
+    this.handlesaveSizeAndPosition(currentPageNumber);
+    this.setState({
+      isGeneratePdf: true,
+      isSpinnerShowed: true
+    });
+  };
+
+  /* eslint-disable*/
   generatePDF = () => {
-    const input = document.getElementById('divToPrint');
-    html2canvas(input, { scrollY: -window.scrollY, scale: 2 }).then(canvas => {
-      const imgData = canvas.toDataURL('image/jpeg', 1.0);
-      const pdf = new JsPDF('p', 'mm', 'a4', true);
-      pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297);
-      // pdf.output('dataurlnewwindow');
+    const { pages } = this.state;
+    const pdf = new JsPDF('p', 'mm', 'a4', true);
+    let i = 0;
+    while (i < pages.length) {
+      const input = document.getElementById('divToPrint' + pages[i]);
+      html2canvas(input, { scrollY: -window.scrollY, scale: 2 }).then(
+        canvas => {
+          console.log('page ' + i);
+          const imgData = canvas.toDataURL('image/jpeg', 1.0);
+          if (i < pages.length - 1) {
+            console.log('save pdf if');
+            pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297, () => {
+              pdf.addPage();
+              console.log('image added');
+              i += 1;
+            });
+          } else if (i === pages.length - 1) {
+            pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297, () => {
+              console.log('save pdf else');
+              pdf.output('dataurlnewwindow');
+              pdf.save('SSMS report.pdf');
+              i += 1;
+            });
+          }
+        }
+      );
+    }
+  };
+  /* eslint-enable */
+
+  generatePDF2 = () => {
+    const { pages } = this.state;
+    console.log(pages);
+    const pdf = new JsPDF('p', 'mm', 'a4', true);
+
+    const addImageToPDF = id => new Promise(resolve => {
+      console.log('id ' + id);
+      const input = document.getElementById('divToPrint' + id);
+      html2canvas(input, { scrollY: -window.scrollY, scale: 2 }).then(
+        canvas => {
+          const imgData = canvas.toDataURL('image/jpeg', 1.0);
+          console.log('save pdf if');
+          pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297);
+          resolve();
+        }
+      ); // Math.random returns a random number from 0~1
+    });
+
+    const promises = pages.map(async (page, index, array) => {
+      // do some operation on ele
+      // ex: var result = await some_async_function_that_return_a_promise(ele)
+      // In the below I use doublify() to be such an async function
+      console.log(array);
+      await addImageToPDF(page).then(() => {
+        pdf.addPage();
+        console.log(
+          'index ' + index + ' length ' + array.length,
+          ' page ' + page
+        );
+        console.log('Image added');
+      });
+    });
+
+    Promise.all(promises).then(() => {
+      console.log('exporting pdf');
+      pdf.output('dataurlnewwindow');
       pdf.save('SSMS report.pdf');
     });
   };
@@ -208,22 +371,16 @@ export class ReportEditor extends Component {
     });
   };
 
-  handleDialogItemClick = (id, type) => {
+  handleDialogItemClick = (ind, type) => {
     if (type === 'chart') {
-      this.generateImageURL(id);
+      this.handleChoosedChart(ind);
     } else if (type === 'table') {
       const { elements, clickedItem } = this.state;
       const index = elements.findIndex(el => el.id === clickedItem);
       const list = JSON.parse(JSON.stringify(elements));
       list[index] = {
-        id: list[index].id,
-        type: list[index].type,
-        chartURL: list[index].chartURL,
-        tableId: id,
-        x: list[index].x,
-        y: list[index].y,
-        height: list[index].height,
-        width: list[index].width
+        ...list[index],
+        tableIndex: ind
       };
       this.setState({
         elements: list
@@ -241,18 +398,19 @@ export class ReportEditor extends Component {
   };
 
   insertElement = type => {
-    const { elements, id } = this.state;
+    const { elements, id, currentPageNumber } = this.state;
     if (type === 'text') {
       this.setState({
         elements: elements.concat({
           id,
           type: 'text',
-          chartURL: '',
-          tableId: -1,
+          chartIndex: -1,
+          tableIndex: -1,
           x: 0,
           y: 0,
           height: 200,
-          width: 200
+          width: 200,
+          page: currentPageNumber
         }),
         id: id + 1
       });
@@ -261,12 +419,13 @@ export class ReportEditor extends Component {
         elements: elements.concat({
           id,
           type: 'chart',
-          chartURL: '',
-          tableId: -1,
+          chartIndex: -1,
+          tableIndex: -1,
           x: 0,
           y: 0,
           height: 200,
-          width: 200
+          width: 200,
+          page: currentPageNumber
         }),
         id: id + 1
       });
@@ -275,29 +434,26 @@ export class ReportEditor extends Component {
         elements: elements.concat({
           id,
           type: 'table',
-          chartURL: '',
-          tableId: -1,
+          chartIndex: -1,
+          tableIndex: -1,
           x: 0,
           y: 0,
           height: 200,
-          width: 200
+          width: 200,
+          page: currentPageNumber
         }),
         id: id + 1
       });
     }
   };
 
-  generateTable = id => {
-    if (id >= 0) {
-      const chart = am4core.registry.baseSprites[id];
-      const data = JSON.parse(JSON.stringify(chart.data));
+  generateTable = ind => {
+    const { chartTableElements } = this.state;
+    if (ind >= 0) {
+      const data = chartTableElements.chartTables[ind];
       if (data.length > 0) {
         const keys1 = Object.keys(data[0]);
-        const keys2 = [];
-        keys2.push(chart.xAxes.getIndex(0).dataFields.category);
-        for (let i = 0; i < chart.series.length; i += 1) {
-          keys2.push(chart.series.getIndex(i).dataFields.valueY);
-        }
+        const keys2 = chartTableElements.keys[ind];
         const diff = keys1.filter(k => !keys2.includes(k));
         for (let i = 0; i < diff.length; i += 1) {
           data.forEach(k => delete k[diff[i]]);
@@ -332,14 +488,11 @@ export class ReportEditor extends Component {
       );
     }
     return (
-      <img
-        src=""
-        alt="table holder"
-        style={{
-          height: '100%',
-          width: '100%'
-        }}
-      />
+      <div>
+        Double click
+        <br />
+        to choose a table data
+      </div>
     );
   };
 
@@ -371,26 +524,24 @@ export class ReportEditor extends Component {
   };
 
   saveReportTemplate = () => {
-    const { elements } = this.state;
-    const list = [];
-    elements.forEach(item => {
+    const { currentPageNumber, pages } = this.state;
+    const list = this.handlesaveSizeAndPosition(currentPageNumber);
+    const list2 = [];
+    list.forEach(item => {
       const item1 = {
         id: item.id,
         type: item.type,
-        chartURL: '',
-        x: document.getElementById('element' + item.id).getAttribute('data-x'),
-        y: document.getElementById('element' + item.id).getAttribute('data-y'),
-        height: document
-          .getElementById('element' + item.id)
-          .getBoundingClientRect().height,
-        width: document
-          .getElementById('element' + item.id)
-          .getBoundingClientRect().width
+        chartIndex: -1,
+        x: item.x,
+        y: item.y,
+        height: item.height,
+        width: item.width,
+        page: item.page
       };
-      list.push(item1);
+      list2.push(item1);
     });
     const obj = {
-      templateParam: JSON.stringify(list),
+      templateParam: JSON.stringify({ pages, elements: list2 }),
       creationTime: new Date()
     };
     ReportServices.save(obj)
@@ -417,44 +568,35 @@ export class ReportEditor extends Component {
 
   handleClose = () => {
     this.setState({
-      historyDialogOpen: false
+      historyDialogOpen: false,
+      isGeneratePdf: false
     });
   };
 
   handleHistoryTemplateOk = radioChoosedIndex => {
     const { historyTemplates } = this.state;
-    const list = JSON.parse(historyTemplates[radioChoosedIndex].templateParam);
+    console.log(historyTemplates);
+    const templateParam = JSON.parse(
+      historyTemplates[radioChoosedIndex].templateParam
+    );
+    const list = templateParam.elements;
+    const { pages } = templateParam;
     for (let i = 0; i < list.length; i += 1) {
       list[i].id = i;
     }
-    this.setState(
-      {
-        elements: list,
-        id: list.length + 1
-      },
-      () => {
-        for (let i = 0; i < list.length; i += 1) {
-          document.getElementById(
-            'element' + list[i].id
-          ).style.webkitTransform = 'translate(' + list[i].x + 'px, ' + list[i].y + 'px)';
-          document.getElementById('element' + list[i].id).style.transform = 'translate(' + list[i].x + 'px, ' + list[i].y + 'px)';
-          document
-            .getElementById('element' + list[i].id)
-            .setAttribute('data-x', list[i].x);
-          document
-            .getElementById('element' + list[i].id)
-            .setAttribute('data-y', list[i].y);
-          document.getElementById('element' + list[i].id).style.width = list[i].width + 'px';
-          document.getElementById('element' + list[i].id).style.height = list[i].height + 'px';
-        }
-      }
-    );
+    this.setState({
+      elements: list,
+      pages,
+      currentPageIndex: 0,
+      currentPageNumber: pages[0],
+      id: list.length + 1,
+      isLoadTemplate: true
+    });
     this.handleClose();
   };
 
   handleDeleteTemplate = tmp => {
-    ReportServices.delete(tmp).then(response => {
-      console.log(response.data);
+    ReportServices.delete(tmp).then(() => {
       this.updateHistoryList();
     });
   };
@@ -487,6 +629,7 @@ export class ReportEditor extends Component {
 
   renderElement = row => {
     const { classes } = this.props;
+    const { chartImages } = this.state;
     if (row.type === 'text') {
       return (
         <ReactQuill
@@ -501,7 +644,8 @@ export class ReportEditor extends Component {
             fontSize: '20px',
             height: '80px',
             width: '200px',
-            position: 'absolute'
+            position: 'absolute',
+            overflow: 'hidden'
           }}
           onMouseDown={() => this.selectElement(row.id)}
           tabIndex={row.id}
@@ -511,6 +655,7 @@ export class ReportEditor extends Component {
       );
     }
     if (row.type === 'chart') {
+      console.log('element' + row.id);
       return (
         <button
           type="button"
@@ -520,21 +665,30 @@ export class ReportEditor extends Component {
           style={{
             height: '200px',
             width: '200px',
-            position: 'absolute'
+            position: 'absolute',
+            overflow: 'hidden'
           }}
           tabIndex={row.id}
           onBlur={() => this.unselectElement(row.id)}
           onKeyDown={e => this.handleRemoveItem(e, row.id)}
           onDoubleClick={() => this.openDialogChoose(row.id, 'chart')}
         >
-          <img
-            src={row.chartURL}
-            alt="chart holder"
-            style={{
-              height: '100%',
-              width: '100%'
-            }}
-          />
+          {row.chartIndex >= 0 ? (
+            <img
+              src={row.chartIndex >= 0 ? chartImages[row.chartIndex] : ''}
+              alt="chart holder"
+              style={{
+                height: '100%',
+                width: '100%'
+              }}
+            />
+          ) : (
+            <div>
+              Double click
+              <br />
+              to choose a chart
+            </div>
+          )}
         </button>
       );
     }
@@ -555,24 +709,100 @@ export class ReportEditor extends Component {
         onKeyDown={e => this.handleRemoveItem(e, row.id)}
         onDoubleClick={() => this.openDialogChoose(row.id, 'table')}
       >
-        {this.generateTable(row.tableId)}
+        {this.generateTable(row.tableIndex)}
       </button>
     );
   };
 
-  handleChoosedChart = url => {
+  renderPreviewElement = row => {
+    const { classes } = this.props;
+    const { chartImages } = this.state;
+    if (row.type === 'text') {
+      return (
+        <ReactQuill
+          id={'previewElement' + row.id}
+          theme="bubble"
+          modules={modules}
+          formats={formats}
+          placeholder="Insert text"
+          className={classes.textarea}
+          style={{
+            fontSize: '20px',
+            height: '80px',
+            width: '200px',
+            position: 'absolute',
+            overflow: 'hidden'
+          }}
+          tabIndex={row.id}
+        />
+      );
+    }
+    if (row.type === 'chart') {
+      console.log('element' + row.id);
+      return (
+        <button
+          id={'previewElement' + row.id}
+          type="button"
+          className={classes.imagearea}
+          style={{
+            height: '200px',
+            width: '200px',
+            position: 'absolute',
+            overflow: 'hidden'
+          }}
+          tabIndex={row.id}
+        >
+          {row.chartIndex >= 0 ? (
+            <img
+              src={row.chartIndex >= 0 ? chartImages[row.chartIndex] : ''}
+              alt="chart holder"
+              style={{
+                height: '100%',
+                width: '100%'
+              }}
+            />
+          ) : (
+            <div>
+              Double click
+              <br />
+              to choose a chart
+            </div>
+          )}
+        </button>
+      );
+    }
+    return (
+      <button
+        id={'previewElement' + row.id}
+        type="button"
+        className={classes.imagearea}
+        style={{
+          height: '200px',
+          width: '200px',
+          position: 'absolute',
+          overflow: 'hidden'
+        }}
+        tabIndex={row.id}
+      >
+        {this.generateTable(row.tableIndex)}
+      </button>
+    );
+  };
+
+  handleChoosedChart = ind => {
     const { elements, clickedItem } = this.state;
     const index = elements.findIndex(el => el.id === clickedItem);
     const list = JSON.parse(JSON.stringify(elements));
     list[index] = {
       id: list[index].id,
       type: list[index].type,
-      chartURL: url,
-      tableId: list[index].tableId,
+      chartIndex: ind,
+      tableIndex: list[index].tableIndex,
       x: list[index].x,
       y: list[index].y,
       height: list[index].height,
-      width: list[index].width
+      width: list[index].width,
+      page: list[index].page
     };
     this.setState({
       elements: list
@@ -598,15 +828,175 @@ export class ReportEditor extends Component {
     handleSetType('visualize');
   };
 
+  handlesaveSizeAndPosition = currentIndex => {
+    const { elements } = this.state;
+    const list = JSON.parse(JSON.stringify(elements));
+    console.log('current: ' + currentIndex);
+    for (let i = 0; i < list.length; i += 1) {
+      if (list[i].page === currentIndex) {
+        list[i] = {
+          ...list[i],
+          x: document
+            .getElementById('element' + list[i].id)
+            .getAttribute('data-x'),
+          y: document
+            .getElementById('element' + list[i].id)
+            .getAttribute('data-y'),
+          height: document
+            .getElementById('element' + list[i].id)
+            .getBoundingClientRect().height,
+          width: document
+            .getElementById('element' + list[i].id)
+            .getBoundingClientRect().width
+        };
+      }
+    }
+    console.log(list);
+    this.setState({
+      elements: list
+    });
+    return list;
+  };
+
+  handleSetSizeAndPositionByIndex = newIndex => {
+    const { elements } = this.state;
+    const elm = elements.filter(element => element.page === newIndex);
+    console.log(elm);
+    for (let i = 0; i < elm.length; i += 1) {
+      console.log('element' + elm[i].id);
+      document.getElementById('element' + elm[i].id).style.webkitTransform = 'translate(' + elm[i].x + 'px, ' + elm[i].y + 'px)';
+      document.getElementById('element' + elm[i].id).style.transform = 'translate(' + elm[i].x + 'px, ' + elm[i].y + 'px)';
+      document
+        .getElementById('element' + elm[i].id)
+        .setAttribute('data-x', elm[i].x);
+      document
+        .getElementById('element' + elm[i].id)
+        .setAttribute('data-y', elm[i].y);
+      document.getElementById('element' + elm[i].id).style.width = elm[i].width + 'px';
+      document.getElementById('element' + elm[i].id).style.height = elm[i].height + 'px';
+    }
+  };
+
+  handleSetSizeAndPosition = type => {
+    const { elements } = this.state;
+    const elm = elements;
+    console.log(elm);
+    for (let i = 0; i < elm.length; i += 1) {
+      console.log(document.getElementById(type + '' + elm[i].id));
+      if (document.getElementById(type + '' + elm[i].id) !== null) {
+        document.getElementById(type + '' + elm[i].id).style.webkitTransform = 'translate(' + elm[i].x + 'px, ' + elm[i].y + 'px)';
+        document.getElementById(type + '' + elm[i].id).style.transform = 'translate(' + elm[i].x + 'px, ' + elm[i].y + 'px)';
+        document
+          .getElementById(type + '' + elm[i].id)
+          .setAttribute('data-x', elm[i].x);
+        document
+          .getElementById(type + '' + elm[i].id)
+          .setAttribute('data-y', elm[i].y);
+        document.getElementById(type + '' + elm[i].id).style.width = elm[i].width + 'px';
+        document.getElementById(type + '' + elm[i].id).style.height = elm[i].height + 'px';
+      }
+    }
+    /* if (isLoadTemplate) {
+      this.setState({
+        isLoadTemplate: false,
+        currentPageIndex: pages.length - 1,
+        currentPageNumber: pages[pages.length - 1]
+      });
+    } else {
+      this.setState({
+        isSpinnerShowed: false
+      });
+    } */
+    this.setState({
+      isLoadTemplate: false,
+      isSpinnerShowed: false
+    });
+  };
+
+  handleNextPage = () => {
+    const { currentPageIndex, currentPageNumber, pages } = this.state;
+    this.handlesaveSizeAndPosition(currentPageNumber);
+    this.setState(
+      {
+        currentPageIndex: currentPageIndex + 1,
+        currentPageNumber: pages[currentPageIndex + 1]
+      },
+      () => {
+        this.handleSetSizeAndPositionByIndex(
+          pages[currentPageIndex + 1],
+          'element'
+        );
+      }
+    );
+  };
+
+  handlePreviousPage = () => {
+    const { currentPageIndex, currentPageNumber, pages } = this.state;
+    this.handlesaveSizeAndPosition(currentPageNumber);
+    this.setState(
+      {
+        currentPageIndex: currentPageIndex - 1,
+        currentPageNumber: pages[currentPageIndex - 1]
+      },
+      () => {
+        this.handleSetSizeAndPositionByIndex(
+          pages[currentPageIndex - 1],
+          'element'
+        );
+      }
+    );
+  };
+
+  addNewPage = () => {
+    const { pages, currentPageNumber } = this.state;
+    const list = pages;
+    list.push(pages[pages.length - 1] + 1);
+    console.log(list);
+    this.handlesaveSizeAndPosition(currentPageNumber);
+    this.setState({
+      pages: list,
+      currentPageIndex: pages.length - 1,
+      currentPageNumber: pages[pages.length - 1]
+    });
+  };
+
+  deleteCurrentPage = () => {
+    const {
+      pages, currentPageIndex, currentPageNumber, elements
+    } = this.state;
+    let newIndex = 0;
+    const list = pages;
+    list.splice(currentPageIndex, 1);
+    if (currentPageIndex === pages.length - 1 && pages.length > 1) {
+      newIndex = currentPageIndex - 1;
+    }
+    this.setState(
+      {
+        pages: list,
+        currentPageIndex: newIndex,
+        currentPageNumber: pages[newIndex],
+        elements: elements.filter(el => el.page !== currentPageNumber)
+      },
+      () => {
+        this.handleSetSizeAndPositionByIndex(pages[newIndex], 'element');
+      }
+    );
+  };
+
   render() {
     const { chartList, classes } = this.props;
     const {
       openDialog,
+      isGeneratePdf,
+      isSpinnerShowed,
       dialogType,
       templates,
       elements,
       historyDialogOpen,
-      historyTemplates
+      historyTemplates,
+      pages,
+      currentPageIndex,
+      currentPageNumber
     } = this.state;
     return (
       <div
@@ -614,6 +1004,82 @@ export class ReportEditor extends Component {
           marginBottom: '10px'
         }}
       >
+        <Dialog
+          open={isGeneratePdf}
+          disableBackdropClick
+          disableEscapeKeyDown
+          onClose={this.handleClose}
+          aria-labelledby="alert-dialog-slide-title"
+          aria-describedby="alert-dialog-slide-description"
+          fullWidth
+          maxWidth="xl"
+        >
+          <DialogTitle id="alert-dialog-title">Preview</DialogTitle>
+          <DialogContent>
+            {isSpinnerShowed ? (
+              <img
+                src="/images/spinner.gif"
+                alt="spinner"
+                className={classes.circularProgress}
+              />
+            ) : (
+              <div />
+            )}
+            <div
+              style={
+                isSpinnerShowed
+                  ? {
+                    pointerEvents: 'none',
+                    opacity: '0.4',
+                    width: '100%',
+                    backgroundColor: '#E9EBEC',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    borderRadius: '10px',
+                    padding: 20
+                  }
+                  : {
+                    width: '100%',
+                    backgroundColor: '#E9EBEC',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    borderRadius: '10px',
+                    padding: 20
+                  }
+              }
+            >
+              {pages.map(pageIndex => (
+                <Paper
+                  id={'divToPrint' + pageIndex}
+                  style={{
+                    width: '315mm',
+                    height: '445.5mm',
+                    margin: 20,
+                    position: 'relative'
+                  }}
+                  elevation={3}
+                  square
+                >
+                  {elements
+                    .filter(element => element.page === pageIndex)
+                    .map(row => this.renderPreviewElement(row))}
+                </Paper>
+              ))}
+            </div>
+          </DialogContent>
+          <DialogActions>
+            <Button autoFocus color="primary" onClick={this.handleClose}>
+              Cancel
+            </Button>
+            <Button color="primary" onClick={this.generatePDF2}>
+              Generate
+            </Button>
+          </DialogActions>
+        </Dialog>
         <ListDialog
           keepMounted
           open={historyDialogOpen}
@@ -634,10 +1100,10 @@ export class ReportEditor extends Component {
           </DialogTitle>
           <List component="nav" aria-label="main mailbox folders">
             {dialogType === 'chart' || dialogType === 'table'
-              ? chartList.map(row => (
+              ? chartList.map((row, index) => (
                 <ListItem
                   button
-                  onClick={() => this.handleDialogItemClick(row.id, dialogType)
+                  onClick={() => this.handleDialogItemClick(index, dialogType)
                   }
                 >
                   <ListItemText primary={'chart ' + (row.id + 1)} />
@@ -675,55 +1141,166 @@ export class ReportEditor extends Component {
             }}
             elevation={3}
           >
-            <Button
-              className={classes.button}
-              onClick={() => this.insertElement('text')}
-            >
-              insert text
-            </Button>
-            <Button
-              className={classes.button}
-              onClick={() => this.insertElement('chart')}
-            >
-              insert chart
-            </Button>
-            <Button
-              className={classes.button}
-              onClick={() => this.insertElement('table')}
-            >
-              insert table
-            </Button>
-            <Button
-              className={classes.button}
-              onClick={this.saveReportTemplate}
-            >
-              save as template
-            </Button>
-            <Button
-              className={classes.button}
-              onClick={this.openTemplateHistoryDialog}
-            >
-              load a template
-            </Button>
-            <Button className={classes.button} onClick={this.generatePDF}>
-              Generate
-            </Button>
-            <Button className={classes.button} onClick={this.closeEditor}>
-              Close editor
-            </Button>
+            <Tooltip title="Add text to current page">
+              <IconButton
+                aria-label="Insert text"
+                className={classes.button}
+                onClick={() => this.insertElement('text')}
+              >
+                <div className={classes.divCenter}>
+                  <TextFieldsIcon />
+                  <Typography variant="subtitle1">Insert text</Typography>
+                </div>
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Add chart to current page">
+              <IconButton
+                aria-label="Insert chart"
+                className={classes.button}
+                onClick={() => this.insertElement('chart')}
+              >
+                <div className={classes.divCenter}>
+                  <EqualizerIcon />
+                  <Typography variant="subtitle1">Insert chart</Typography>
+                </div>
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Add table data to current page">
+              <IconButton
+                aria-label="Insert table"
+                className={classes.button}
+                onClick={() => this.insertElement('table')}
+              >
+                <div className={classes.divCenter}>
+                  <TableChartIcon />
+                  <Typography variant="subtitle1">Insert table</Typography>
+                </div>
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Add new page">
+              <IconButton
+                aria-label="Add page"
+                className={classes.button}
+                onClick={this.addNewPage}
+              >
+                <div className={classes.divCenter}>
+                  <PostAddIcon />
+                  <Typography variant="subtitle1">Add page</Typography>
+                </div>
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Delete current page">
+              <IconButton
+                aria-label="Remove page"
+                onClick={this.deleteCurrentPage}
+                lassName={classes.button}
+                disabled={pages.length === 1}
+              >
+                <div className={classes.divCenter}>
+                  <DeleteForeverIcon />
+                  <Typography variant="subtitle1">Remove page</Typography>
+                </div>
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Save this report as template">
+              <IconButton
+                aria-label="Save template"
+                className={classes.button}
+                onClick={this.saveReportTemplate}
+              >
+                <div className={classes.divCenter}>
+                  <SaveIcon />
+                  <Typography variant="subtitle1">Save as template</Typography>
+                </div>
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Load a saved template">
+              <IconButton
+                aria-label="Load template"
+                className={classes.button}
+                onClick={this.openTemplateHistoryDialog}
+              >
+                <div className={classes.divCenter}>
+                  <PublishIcon />
+                  <Typography variant="subtitle1">Load a template</Typography>
+                </div>
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Generate the pages in PDF file">
+              <IconButton
+                aria-label="Generate PDF"
+                className={classes.button}
+                onClick={this.openGeneratePdfDialog}
+              >
+                <div className={classes.divCenter}>
+                  <PictureAsPdfIcon />
+                  <Typography variant="subtitle1">Generate PDF</Typography>
+                </div>
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Close the editor">
+              <IconButton
+                aria-label="Close editor"
+                className={classes.button}
+                onClick={this.closeEditor}
+              >
+                <div className={classes.divCenter}>
+                  <CancelPresentationIcon />
+                  <Typography variant="subtitle1">Close editor</Typography>
+                </div>
+              </IconButton>
+            </Tooltip>
           </Paper>
-          <Paper
-            id="divToPrint"
+          <div
+            id="editorSpace"
             style={{
-              width: '315mm',
-              height: '445.5mm',
-              padding: 20
+              margin: 20
             }}
-            elevation={3}
-            square
           >
-            {elements.map(row => this.renderElement(row))}
-          </Paper>
+            {pages
+              .filter(page => page === currentPageNumber)
+              .map(pageIndex => (
+                <Paper
+                  style={{
+                    width: '315mm',
+                    height: '445.5mm'
+                  }}
+                  elevation={3}
+                  square
+                >
+                  {elements
+                    .filter(element => element.page === pageIndex)
+                    .map(row => this.renderElement(row))}
+                </Paper>
+              ))}
+          </div>
+          <div className={classes.divSpace}>
+            <Tooltip title="Previous page">
+              <IconButton
+                aria-label="Previous page"
+                className={classes.button}
+                onClick={this.handlePreviousPage}
+                disabled={pages.length <= 1 || currentPageIndex === 0}
+              >
+                <NavigateBeforeIcon />
+              </IconButton>
+            </Tooltip>
+            <Typography variant="subtitle1">
+              {`Page ${currentPageIndex + 1}`}
+            </Typography>
+            <Tooltip title="Next page">
+              <IconButton
+                aria-label="Next page"
+                className={classes.button}
+                onClick={this.handleNextPage}
+                disabled={
+                  pages.length <= 1 || pages.length === currentPageIndex + 1
+                }
+              >
+                <NavigateNextIcon />
+              </IconButton>
+            </Tooltip>
+          </div>
         </div>
       </div>
     );

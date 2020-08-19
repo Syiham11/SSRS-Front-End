@@ -55,6 +55,11 @@ const styles = theme => ({
       }
     }
   },
+  divCenter: {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
   iconStyle: {
     '& svg': {
       width: '70%',
@@ -70,6 +75,35 @@ const styles = theme => ({
   },
   paperColor: {
     backgroundColor: '#FAFAFA'
+  },
+  searchBox: {
+    font: 'inherit',
+    display: 'block',
+    verticalAlign: 'middle',
+    whiteSpace: 'normal',
+    margin: 0, // Reset for Safari
+    color: 'inherit',
+    '& > div': {
+      border: 'none',
+      '&:after': {
+        display: 'none'
+      }
+    },
+    '& input': {
+      border: '1px solid ' + theme.palette.grey[200],
+      borderRadius: '20px',
+      transition: theme.transitions.create('width'),
+      padding: 10,
+      color: theme.palette.text.secondary,
+      height: 20,
+      width: 100,
+      background: theme.palette.grey[200],
+      '&:focus': {
+        width: 250,
+        textIndent: 0,
+        outline: 0
+      }
+    }
   }
 });
 
