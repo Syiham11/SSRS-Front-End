@@ -17,7 +17,8 @@ import {
   DialogContent,
   DialogActions,
   Typography,
-  Button
+  Button,
+  TextField
 } from '@material-ui/core';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
@@ -41,6 +42,7 @@ import DeleteForeverIcon from '@material-ui/icons/DeleteForever';
 import ImageIcon from '@material-ui/icons/Image';
 import ListDialog from './ListDialog';
 import ReportServices from '../../Services/report';
+import Notification from '../../../components/Notification/Notification';
 
 const styles = theme => ({
   textarea: {
@@ -140,9 +142,11 @@ export class ReportEditor extends Component {
     isGeneratePdf: false,
     isSpinnerShowed: false,
     isLoadTemplate: false,
+    isSaveTemplateName: false,
     dialogType: '',
+    inputTemplateName: '',
+    notifMessage: '',
     clickedItem: 0,
-    templates: [],
     selectedElement: -1,
     historyTemplates: [],
     chartImages: [],
@@ -540,7 +544,7 @@ export class ReportEditor extends Component {
   };
 
   saveReportTemplate = () => {
-    const { currentPageNumber, pages } = this.state;
+    const { currentPageNumber, pages, inputTemplateName } = this.state;
     const list = this.handlesaveSizeAndPosition(currentPageNumber);
     const list2 = [];
     list.forEach(item => {
@@ -560,23 +564,19 @@ export class ReportEditor extends Component {
       list2.push(item1);
     });
     const obj = {
+      name: inputTemplateName,
       templateParam: JSON.stringify({ pages, elements: list2 }),
       creationTime: new Date()
     };
     ReportServices.save(obj)
       .then(() => {
         this.updateHistoryList();
+        this.handleClose();
+        this.openNotif('Template saved');
       })
       .catch(error => {
         console.log(error.message);
       });
-  };
-
-  loadDialogOpen = () => {
-    this.setState({
-      openDialog: true,
-      dialogType: 'template'
-    });
   };
 
   openTemplateHistoryDialog = () => {
@@ -588,7 +588,9 @@ export class ReportEditor extends Component {
   handleClose = () => {
     this.setState({
       historyDialogOpen: false,
-      isGeneratePdf: false
+      isGeneratePdf: false,
+      isSaveTemplateName: false,
+      inputTemplateName: ''
     });
   };
 
@@ -621,9 +623,9 @@ export class ReportEditor extends Component {
   };
 
   loadReportTemplate = id => {
-    const { templates } = this.state;
-    const index = templates.findIndex(pl => pl.id === id);
-    const list = JSON.parse(JSON.stringify(templates));
+    const { historyTemplates } = this.state;
+    const index = historyTemplates.findIndex(pl => pl.id === id);
+    const list = JSON.parse(JSON.stringify(historyTemplates));
     const elm = list[index].template;
     this.setState(
       {
@@ -1139,20 +1141,46 @@ export class ReportEditor extends Component {
     );
   };
 
+  openSaveTemplateDialog = () => {
+    this.setState({
+      isSaveTemplateName: true
+    });
+  };
+
+  handleTemplateName = e => {
+    this.setState({
+      inputTemplateName: e.target.value
+    });
+  };
+
+  openNotif = message => {
+    this.setState({
+      notifMessage: message
+    });
+  };
+
+  closeNotif = () => {
+    this.setState({
+      notifMessage: ''
+    });
+  };
+
   render() {
     const { chartList, classes } = this.props;
     const {
       openDialog,
       isGeneratePdf,
       isSpinnerShowed,
+      isSaveTemplateName,
       dialogType,
-      templates,
       elements,
       historyDialogOpen,
       historyTemplates,
       pages,
       currentPageIndex,
-      currentPageNumber
+      currentPageNumber,
+      inputTemplateName,
+      notifMessage
     } = this.state;
     return (
       <div
@@ -1160,6 +1188,43 @@ export class ReportEditor extends Component {
           marginBottom: '10px'
         }}
       >
+        <Notification message={notifMessage} close={this.closeNotif} />
+        <Dialog
+          disableBackdropClick
+          disableEscapeKeyDown
+          maxWidth="xs"
+          fullWidth
+          aria-labelledby="setTemplateName"
+          open={isSaveTemplateName}
+          classes={{
+            paper: classes.paper
+          }}
+        >
+          <DialogTitle id="SaveFormula">Set template name</DialogTitle>
+          <DialogContent>
+            <TextField
+              id="outlined-basic"
+              label="Insert Name"
+              variant="outlined"
+              value={inputTemplateName}
+              fullWidth
+              onChange={this.handleTemplateName}
+              className={classes.textField}
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button autoFocus onClick={this.handleClose} color="primary">
+              Cancel
+            </Button>
+            <Button
+              onClick={this.saveReportTemplate}
+              disabled={inputTemplateName === ''}
+              color="primary"
+            >
+              Save
+            </Button>
+          </DialogActions>
+        </Dialog>
         <Dialog
           open={isGeneratePdf}
           disableBackdropClick
@@ -1249,30 +1314,16 @@ export class ReportEditor extends Component {
           open={openDialog}
           onClose={this.closeDialogChoose}
         >
-          <DialogTitle id="simple-dialog-title">
-            {dialogType === 'chart' || dialogType === 'table'
-              ? 'Choose chart'
-              : 'Choose template'}
-          </DialogTitle>
+          <DialogTitle id="simple-dialog-title">Choose chart</DialogTitle>
           <List component="nav" aria-label="main mailbox folders">
-            {dialogType === 'chart' || dialogType === 'table'
-              ? chartList.map((row, index) => (
-                <ListItem
-                  button
-                  onClick={() => this.handleDialogItemClick(index, dialogType)
-                  }
-                >
-                  <ListItemText primary={'chart ' + (row.id + 1)} />
-                </ListItem>
-              ))
-              : templates.map(row => (
-                <ListItem
-                  button
-                  onClick={() => this.loadReportTemplate(row.id)}
-                >
-                  <ListItemText primary={'template ' + (row.id + 1)} />
-                </ListItem>
-              ))}
+            {chartList.map((row, index) => (
+              <ListItem
+                button
+                onClick={() => this.handleDialogItemClick(index, dialogType)}
+              >
+                <ListItemText primary={'chart ' + (row.id + 1)} />
+              </ListItem>
+            ))}
           </List>
         </Dialog>
         <div
@@ -1374,7 +1425,7 @@ export class ReportEditor extends Component {
               <IconButton
                 aria-label="Save template"
                 className={classes.button}
-                onClick={this.saveReportTemplate}
+                onClick={this.openSaveTemplateDialog}
               >
                 <div className={classes.divCenter}>
                   <SaveIcon />

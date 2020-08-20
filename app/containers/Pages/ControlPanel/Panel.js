@@ -34,7 +34,7 @@ export class Panel extends Component {
     order: 'asc',
     orderBy: 'Username',
     filter: '',
-    userIndex: -1,
+    selectedUser: {},
     isViewProfile: false
   };
 
@@ -124,9 +124,9 @@ export class Panel extends Component {
     this.setState({ filter: event.target.value });
   };
 
-  handleViewProfile = index => {
+  handleViewProfile = user => {
     this.setState({
-      userIndex: index,
+      selectedUser: user,
       isViewProfile: true
     });
   };
@@ -146,7 +146,7 @@ export class Panel extends Component {
       order,
       orderBy,
       filter,
-      userIndex,
+      selectedUser,
       isViewProfile
     } = this.state;
     const lowercasedFilter = filter.toLowerCase();
@@ -205,7 +205,7 @@ export class Panel extends Component {
           }}
         >
           <DialogContent>
-            <UserProfile user={users[userIndex]} />
+            <UserProfile user={selectedUser} />
           </DialogContent>
         </Dialog>
         <TextField
@@ -235,7 +235,7 @@ export class Panel extends Component {
           <TableBody>
             {this.stableSort(filteredData, this.getComparator(order, orderBy))
               .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-              .map((row, index) => (
+              .map(row => (
                 <TableRow key={row.name}>
                   <TableCell component="th" scope="row">
                     {row.username}
@@ -292,7 +292,7 @@ export class Panel extends Component {
                       <IconButton
                         aria-label="viewProfile"
                         className={classes.margin}
-                        onClick={() => this.handleViewProfile(index)}
+                        onClick={() => this.handleViewProfile(row)}
                       >
                         <VisibilityIcon />
                       </IconButton>

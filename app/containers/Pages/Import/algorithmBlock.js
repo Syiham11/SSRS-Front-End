@@ -215,7 +215,7 @@ class AlgorithmBlock extends React.Component {
             <ListItem>
               <MathJax.Context input="ascii">
                 <div className={classes.divCenter}>
-                  {'Your formula: '}
+                  {'Your formula:  '}
                   <MathJax.Node inline>
                     {currentAlgorithm.algo.algoFormula
                       ? currentAlgorithm.algo.algoFormula
@@ -226,7 +226,7 @@ class AlgorithmBlock extends React.Component {
             </ListItem>
             <ListItem>
               <div className={classes.divCenter}>
-                Algorithm Type:
+                {'Algorithm Type: '}
                 {currentAlgorithm.algo.algoType
                   ? currentAlgorithm.algo.algoType
                   : ''}
