@@ -2,6 +2,7 @@ const styles = theme => ({
   divCenter: {
     display: 'flex',
     justifyContent: 'center',
+    alignItems: 'center',
     [theme.breakpoints.down('xs')]: {
       flexDirection: 'column',
       '& button': {
