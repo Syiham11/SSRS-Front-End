@@ -13,17 +13,17 @@ import {
   TableCell,
   TableRow,
   IconButton,
-  Divider,
   Typography,
   DialogTitle,
   DialogContent,
   DialogContentText,
-  DialogActions, Dialog,
-  Checkbox
+  DialogActions,
+  Dialog,
+  Checkbox,
+  Tooltip
 } from '@material-ui/core';
 import WorkspaceServices from '../../Services/workspace';
 import SharewithServices from '../../Services/sharewith';
-
 
 class WorkspaceList extends Component {
   state = {
@@ -193,9 +193,12 @@ class WorkspaceList extends Component {
           title="Workspaces"
           whiteBg
           icon="ios-desktop-outline"
-          desc="Choose a workspace ot click on new to create a new workspace"
+          desc="Choose a workspace or click on plus button to create a new workspace"
         >
-          <Table aria-label="Formulas">
+          <Typography variant="h6" color="primary" style={{ marginBottom: 25 }}>
+            My workspaces
+          </Typography>
+          <Table aria-label="workspaces">
             <TableHead>
               <TableRow>
                 <TableCell>Title</TableCell>
@@ -237,17 +240,22 @@ class WorkspaceList extends Component {
               ))}
             </TableBody>
           </Table>
-          <IconButton
-            aria-label="Add"
-            onClick={this.handleNewWorkspace}
-            size="medium"
+          <Tooltip title="Create new workspace">
+            <IconButton
+              aria-label="Add"
+              onClick={this.handleNewWorkspace}
+              size="medium"
+            >
+              <AddCircleOutlineIcon />
+            </IconButton>
+          </Tooltip>
+          <Typography
+            variant="h6"
+            color="primary"
+            style={{ marginTop: 60, marginBottom: 25 }}
           >
-            <AddCircleOutlineIcon />
-          </IconButton>
-          <Divider variant="fullWidth" />
-          <div style={{ textAlign: 'center', alignItems: 'center', alignContent: 'center' }}>
-            <Typography variant="h6" color="primary" style={{ marginTop: '10px' }}>Workspaces shared with you</Typography>
-          </div>
+            Workspaces shared with me
+          </Typography>
           <Table aria-label="Formulas">
             <TableHead>
               <TableRow>
@@ -294,11 +302,7 @@ class WorkspaceList extends Component {
           <DialogTitle id="alert-dialog-title">Share workspace</DialogTitle>
           <DialogContent>
             <DialogContentText id="alert-dialog-slide-description">
-              <Typography
-                variant="caption"
-                gutterBottom
-                align="center"
-              >
+              <Typography variant="caption" gutterBottom align="center">
                 Choose users
               </Typography>
               {

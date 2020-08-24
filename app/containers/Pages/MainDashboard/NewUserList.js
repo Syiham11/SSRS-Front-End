@@ -20,7 +20,7 @@ import UserServices from '../../Services/user';
 class NewUserList extends Component {
   state = {
     users: [],
-    userIndex: -1,
+    selectedUser: {},
     isViewProfile: false
   };
 
@@ -44,9 +44,9 @@ class NewUserList extends Component {
     });
   };
 
-  handleViewProfile = index => {
+  handleViewProfile = user => {
     this.setState({
-      userIndex: index,
+      selectedUser: user,
       isViewProfile: true
     });
   };
@@ -59,7 +59,7 @@ class NewUserList extends Component {
 
   render() {
     const { classes } = this.props;
-    const { users, userIndex, isViewProfile } = this.state;
+    const { users, selectedUser, isViewProfile } = this.state;
     return (
       <div
         style={{
@@ -84,7 +84,7 @@ class NewUserList extends Component {
           }}
         >
           <DialogContent>
-            <UserProfile user={users[userIndex]} />
+            <UserProfile user={selectedUser} />
           </DialogContent>
         </Dialog>
         <PapperBlock
@@ -102,7 +102,11 @@ class NewUserList extends Component {
                 <div className={classes.divInline}>
                   <div>
                     <ListItemAvatar>
-                      <Avatar alt="User Name" src={avatarApi[8]} />
+                      <Avatar
+                        alt="User Name"
+                        src={avatarApi[8]}
+                        onClick={() => this.handleViewProfile(user)}
+                      />
                     </ListItemAvatar>
                   </div>
                   <div>
@@ -110,7 +114,8 @@ class NewUserList extends Component {
                       id={'title' + index}
                       variant="body1"
                       gutterBottom
-                      onClick={() => this.handleViewProfile(index)}
+                      onClick={() => this.handleViewProfile(user)}
+                      className={classes.buttonLink}
                     >
                       {user.username}
                     </Typography>

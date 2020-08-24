@@ -104,6 +104,14 @@ const styles = theme => ({
         outline: 0
       }
     }
+  },
+  buttonLink: {
+    background: 'none',
+    transition: 'color ease 0.3s',
+    '&:hover': {
+      background: 'none',
+      color: theme.palette.secondary.main
+    }
   }
 });
 

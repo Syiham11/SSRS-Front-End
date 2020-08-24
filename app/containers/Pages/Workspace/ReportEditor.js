@@ -17,7 +17,8 @@ import {
   DialogContent,
   DialogActions,
   Typography,
-  Button
+  Button,
+  TextField
 } from '@material-ui/core';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
@@ -38,8 +39,10 @@ import NavigateBeforeIcon from '@material-ui/icons/NavigateBefore';
 import NavigateNextIcon from '@material-ui/icons/NavigateNext';
 import PostAddIcon from '@material-ui/icons/PostAdd';
 import DeleteForeverIcon from '@material-ui/icons/DeleteForever';
+import ImageIcon from '@material-ui/icons/Image';
 import ListDialog from './ListDialog';
 import ReportServices from '../../Services/report';
+import Notification from '../../../components/Notification/Notification';
 
 const styles = theme => ({
   textarea: {
@@ -109,7 +112,6 @@ const modules = {
     [{ color: [] }, { background: [] }],
     [{ font: [] }],
     [{ align: [] }],
-    ['image'],
     ['clean']
   ]
 };
@@ -128,8 +130,7 @@ const formats = [
   'direction',
   'align',
   'color',
-  'background',
-  'image'
+  'background'
 ];
 
 export class ReportEditor extends Component {
@@ -141,9 +142,11 @@ export class ReportEditor extends Component {
     isGeneratePdf: false,
     isSpinnerShowed: false,
     isLoadTemplate: false,
+    isSaveTemplateName: false,
     dialogType: '',
+    inputTemplateName: '',
+    notifMessage: '',
     clickedItem: 0,
-    templates: [],
     selectedElement: -1,
     historyTemplates: [],
     chartImages: [],
@@ -155,6 +158,8 @@ export class ReportEditor extends Component {
     currentPageIndex: 0,
     currentPageNumber: 0
   };
+
+  timeout = 0;
 
   componentDidMount() {
     this.updateReportData();
@@ -211,7 +216,8 @@ export class ReportEditor extends Component {
   /* eslint-disable*/
   componentDidUpdate(PreviousProps) {
     const { chartList } = this.props;
-    const { isSpinnerShowed, isLoadTemplate, pages } = this.state;
+    const { isSpinnerShowed, isLoadTemplate, pages, elements } = this.state;
+    console.log(elements);
     if (PreviousProps.chartList !== chartList) {
       setTimeout(() => {
         this.updateReportData();
@@ -305,6 +311,7 @@ export class ReportEditor extends Component {
           } else if (i === pages.length - 1) {
             pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297, () => {
               console.log('save pdf else');
+
               pdf.output('dataurlnewwindow');
               pdf.save('SSMS report.pdf');
               i += 1;
@@ -351,6 +358,8 @@ export class ReportEditor extends Component {
 
     Promise.all(promises).then(() => {
       console.log('exporting pdf');
+      const pageCount = pdf.internal.getNumberOfPages();
+      pdf.deletePage(pageCount);
       pdf.output('dataurlnewwindow');
       pdf.save('SSMS report.pdf');
     });
@@ -404,8 +413,7 @@ export class ReportEditor extends Component {
         elements: elements.concat({
           id,
           type: 'text',
-          chartIndex: -1,
-          tableIndex: -1,
+          text: '',
           x: 0,
           y: 0,
           height: 200,
@@ -420,7 +428,20 @@ export class ReportEditor extends Component {
           id,
           type: 'chart',
           chartIndex: -1,
-          tableIndex: -1,
+          x: 0,
+          y: 0,
+          height: 200,
+          width: 200,
+          page: currentPageNumber
+        }),
+        id: id + 1
+      });
+    } else if (type === 'image') {
+      this.setState({
+        elements: elements.concat({
+          id,
+          type: 'image',
+          imageData: '',
           x: 0,
           y: 0,
           height: 200,
@@ -434,7 +455,6 @@ export class ReportEditor extends Component {
         elements: elements.concat({
           id,
           type: 'table',
-          chartIndex: -1,
           tableIndex: -1,
           x: 0,
           y: 0,
@@ -524,7 +544,7 @@ export class ReportEditor extends Component {
   };
 
   saveReportTemplate = () => {
-    const { currentPageNumber, pages } = this.state;
+    const { currentPageNumber, pages, inputTemplateName } = this.state;
     const list = this.handlesaveSizeAndPosition(currentPageNumber);
     const list2 = [];
     list.forEach(item => {
@@ -532,6 +552,9 @@ export class ReportEditor extends Component {
         id: item.id,
         type: item.type,
         chartIndex: -1,
+        tableIndex: -1,
+        text: '',
+        imageData: '',
         x: item.x,
         y: item.y,
         height: item.height,
@@ -541,23 +564,19 @@ export class ReportEditor extends Component {
       list2.push(item1);
     });
     const obj = {
+      name: inputTemplateName,
       templateParam: JSON.stringify({ pages, elements: list2 }),
       creationTime: new Date()
     };
     ReportServices.save(obj)
       .then(() => {
         this.updateHistoryList();
+        this.handleClose();
+        this.openNotif('Template saved');
       })
       .catch(error => {
         console.log(error.message);
       });
-  };
-
-  loadDialogOpen = () => {
-    this.setState({
-      openDialog: true,
-      dialogType: 'template'
-    });
   };
 
   openTemplateHistoryDialog = () => {
@@ -569,7 +588,9 @@ export class ReportEditor extends Component {
   handleClose = () => {
     this.setState({
       historyDialogOpen: false,
-      isGeneratePdf: false
+      isGeneratePdf: false,
+      isSaveTemplateName: false,
+      inputTemplateName: ''
     });
   };
 
@@ -602,9 +623,9 @@ export class ReportEditor extends Component {
   };
 
   loadReportTemplate = id => {
-    const { templates } = this.state;
-    const index = templates.findIndex(pl => pl.id === id);
-    const list = JSON.parse(JSON.stringify(templates));
+    const { historyTemplates } = this.state;
+    const index = historyTemplates.findIndex(pl => pl.id === id);
+    const list = JSON.parse(JSON.stringify(historyTemplates));
     const elm = list[index].template;
     this.setState(
       {
@@ -627,31 +648,91 @@ export class ReportEditor extends Component {
     );
   };
 
+  handleQuillTextChange = (value, id) => {
+    const { elements } = this.state;
+    console.log(value);
+    if (this.timeout) clearTimeout(this.timeout);
+    this.timeout = setTimeout(() => {
+      const index = elements.findIndex(el => el.id === id);
+      const list = JSON.parse(JSON.stringify(elements));
+      list[index] = {
+        ...list[index],
+        text: value
+      };
+      console.log(list);
+      this.setState({
+        elements: list
+      });
+    }, 500);
+  };
+
+  handleUploadImage = id => {
+    document.getElementById('input' + id).click();
+  };
+
+  handleChangeImage = async id => {
+    const { elements } = this.state;
+    const getImageData = img => new Promise(resolve => {
+      const reader = new FileReader();
+      reader.onloadend = function () {
+        resolve(reader.result);
+      };
+      reader.readAsDataURL(img);
+    });
+
+    console.log(document.getElementById('input' + id).files[0]);
+    const file = document.getElementById('input' + id).files[0];
+
+    await getImageData(file).then(result => {
+      const index = elements.findIndex(el => el.id === id);
+      const list = JSON.parse(JSON.stringify(elements));
+      list[index] = {
+        ...list[index],
+        imageData: result
+      };
+      console.log(result);
+      console.log(list);
+      this.setState({
+        elements: list
+      });
+    });
+
+    Promise.resolve(getImageData);
+  };
+
   renderElement = row => {
     const { classes } = this.props;
     const { chartImages } = this.state;
     if (row.type === 'text') {
       return (
-        <ReactQuill
-          theme="bubble"
-          modules={modules}
-          formats={formats}
-          placeholder="Insert text"
-          onFocus={() => this.selectElement(row.id)}
+        <button
+          type="button"
           id={'element' + row.id}
           className={classes.textarea}
           style={{
             fontSize: '20px',
             height: '80px',
             width: '200px',
-            position: 'absolute',
-            overflow: 'hidden'
+            position: 'absolute'
           }}
           onMouseDown={() => this.selectElement(row.id)}
           tabIndex={row.id}
           onKeyDown={e => this.handleRemoveItem(e, row.id)}
           onBlur={() => this.unselectElement(row.id)}
-        />
+        >
+          <ReactQuill
+            theme="bubble"
+            modules={modules}
+            formats={formats}
+            style={{
+              height: '100%',
+              width: '100%'
+            }}
+            placeholder="Insert text"
+            onChange={value => this.handleQuillTextChange(value, row.id)}
+            onFocus={() => this.selectElement(row.id)}
+          />
+        </button>
       );
     }
     if (row.type === 'chart') {
@@ -675,7 +756,7 @@ export class ReportEditor extends Component {
         >
           {row.chartIndex >= 0 ? (
             <img
-              src={row.chartIndex >= 0 ? chartImages[row.chartIndex] : ''}
+              src={chartImages[row.chartIndex]}
               alt="chart holder"
               style={{
                 height: '100%',
@@ -687,6 +768,50 @@ export class ReportEditor extends Component {
               Double click
               <br />
               to choose a chart
+            </div>
+          )}
+        </button>
+      );
+    }
+    if (row.type === 'image') {
+      console.log('element' + row.id);
+      return (
+        <button
+          type="button"
+          id={'element' + row.id}
+          className={classes.imagearea}
+          onMouseDown={() => this.selectElement(row.id)}
+          style={{
+            height: '200px',
+            width: '200px',
+            position: 'absolute',
+            overflow: 'hidden'
+          }}
+          tabIndex={row.id}
+          onBlur={() => this.unselectElement(row.id)}
+          onKeyDown={e => this.handleRemoveItem(e, row.id)}
+          onDoubleClick={() => this.handleUploadImage(row.id)}
+        >
+          <input
+            type="file"
+            id={'input' + row.id}
+            style={{ display: 'none' }}
+            onChange={() => this.handleChangeImage(row.id)}
+          />
+          {row.imageData !== '' ? (
+            <img
+              src={row.imageData}
+              alt="img holder"
+              style={{
+                height: '100%',
+                width: '100%'
+              }}
+            />
+          ) : (
+            <div>
+              Double click
+              <br />
+              to choose an image
             </div>
           )}
         </button>
@@ -726,6 +851,7 @@ export class ReportEditor extends Component {
           formats={formats}
           placeholder="Insert text"
           className={classes.textarea}
+          value={row.text}
           style={{
             fontSize: '20px',
             height: '80px',
@@ -771,6 +897,39 @@ export class ReportEditor extends Component {
         </button>
       );
     }
+    if (row.type === 'image') {
+      return (
+        <button
+          type="button"
+          id={'previewElement' + row.id}
+          className={classes.imagearea}
+          style={{
+            height: '200px',
+            width: '200px',
+            position: 'absolute',
+            overflow: 'hidden'
+          }}
+          tabIndex={row.id}
+        >
+          {row.imageData !== '' ? (
+            <img
+              src={row.imageData}
+              alt="img holder"
+              style={{
+                height: '100%',
+                width: '100%'
+              }}
+            />
+          ) : (
+            <div>
+              Double click
+              <br />
+              to choose an image
+            </div>
+          )}
+        </button>
+      );
+    }
     return (
       <button
         id={'previewElement' + row.id}
@@ -797,7 +956,6 @@ export class ReportEditor extends Component {
       id: list[index].id,
       type: list[index].type,
       chartIndex: ind,
-      tableIndex: list[index].tableIndex,
       x: list[index].x,
       y: list[index].y,
       height: list[index].height,
@@ -983,20 +1141,46 @@ export class ReportEditor extends Component {
     );
   };
 
+  openSaveTemplateDialog = () => {
+    this.setState({
+      isSaveTemplateName: true
+    });
+  };
+
+  handleTemplateName = e => {
+    this.setState({
+      inputTemplateName: e.target.value
+    });
+  };
+
+  openNotif = message => {
+    this.setState({
+      notifMessage: message
+    });
+  };
+
+  closeNotif = () => {
+    this.setState({
+      notifMessage: ''
+    });
+  };
+
   render() {
     const { chartList, classes } = this.props;
     const {
       openDialog,
       isGeneratePdf,
       isSpinnerShowed,
+      isSaveTemplateName,
       dialogType,
-      templates,
       elements,
       historyDialogOpen,
       historyTemplates,
       pages,
       currentPageIndex,
-      currentPageNumber
+      currentPageNumber,
+      inputTemplateName,
+      notifMessage
     } = this.state;
     return (
       <div
@@ -1004,6 +1188,43 @@ export class ReportEditor extends Component {
           marginBottom: '10px'
         }}
       >
+        <Notification message={notifMessage} close={this.closeNotif} />
+        <Dialog
+          disableBackdropClick
+          disableEscapeKeyDown
+          maxWidth="xs"
+          fullWidth
+          aria-labelledby="setTemplateName"
+          open={isSaveTemplateName}
+          classes={{
+            paper: classes.paper
+          }}
+        >
+          <DialogTitle id="SaveFormula">Set template name</DialogTitle>
+          <DialogContent>
+            <TextField
+              id="outlined-basic"
+              label="Insert Name"
+              variant="outlined"
+              value={inputTemplateName}
+              fullWidth
+              onChange={this.handleTemplateName}
+              className={classes.textField}
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button autoFocus onClick={this.handleClose} color="primary">
+              Cancel
+            </Button>
+            <Button
+              onClick={this.saveReportTemplate}
+              disabled={inputTemplateName === ''}
+              color="primary"
+            >
+              Save
+            </Button>
+          </DialogActions>
+        </Dialog>
         <Dialog
           open={isGeneratePdf}
           disableBackdropClick
@@ -1093,30 +1314,16 @@ export class ReportEditor extends Component {
           open={openDialog}
           onClose={this.closeDialogChoose}
         >
-          <DialogTitle id="simple-dialog-title">
-            {dialogType === 'chart' || dialogType === 'table'
-              ? 'Choose chart'
-              : 'Choose template'}
-          </DialogTitle>
+          <DialogTitle id="simple-dialog-title">Choose chart</DialogTitle>
           <List component="nav" aria-label="main mailbox folders">
-            {dialogType === 'chart' || dialogType === 'table'
-              ? chartList.map((row, index) => (
-                <ListItem
-                  button
-                  onClick={() => this.handleDialogItemClick(index, dialogType)
-                  }
-                >
-                  <ListItemText primary={'chart ' + (row.id + 1)} />
-                </ListItem>
-              ))
-              : templates.map(row => (
-                <ListItem
-                  button
-                  onClick={() => this.loadReportTemplate(row.id)}
-                >
-                  <ListItemText primary={'template ' + (row.id + 1)} />
-                </ListItem>
-              ))}
+            {chartList.map((row, index) => (
+              <ListItem
+                button
+                onClick={() => this.handleDialogItemClick(index, dialogType)}
+              >
+                <ListItemText primary={'chart ' + (row.id + 1)} />
+              </ListItem>
+            ))}
           </List>
         </Dialog>
         <div
@@ -1177,6 +1384,18 @@ export class ReportEditor extends Component {
                 </div>
               </IconButton>
             </Tooltip>
+            <Tooltip title="Add image to current page">
+              <IconButton
+                aria-label="Insert image"
+                className={classes.button}
+                onClick={() => this.insertElement('image')}
+              >
+                <div className={classes.divCenter}>
+                  <ImageIcon />
+                  <Typography variant="subtitle1">Insert image</Typography>
+                </div>
+              </IconButton>
+            </Tooltip>
             <Tooltip title="Add new page">
               <IconButton
                 aria-label="Add page"
@@ -1206,11 +1425,11 @@ export class ReportEditor extends Component {
               <IconButton
                 aria-label="Save template"
                 className={classes.button}
-                onClick={this.saveReportTemplate}
+                onClick={this.openSaveTemplateDialog}
               >
                 <div className={classes.divCenter}>
                   <SaveIcon />
-                  <Typography variant="subtitle1">Save as template</Typography>
+                  <Typography variant="subtitle1">Save template</Typography>
                 </div>
               </IconButton>
             </Tooltip>
@@ -1222,7 +1441,7 @@ export class ReportEditor extends Component {
               >
                 <div className={classes.divCenter}>
                   <PublishIcon />
-                  <Typography variant="subtitle1">Load a template</Typography>
+                  <Typography variant="subtitle1">Load template</Typography>
                 </div>
               </IconButton>
             </Tooltip>

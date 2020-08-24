@@ -23,6 +23,7 @@ import ExpandMoreOutlinedIcon from '@material-ui/icons/ExpandMoreOutlined';
 import ExpandLessOutlinedIcon from '@material-ui/icons/ExpandLessOutlined';
 import AddCircleOutlineIcon from '@material-ui/icons/AddCircleOutline';
 import HighlightOffIcon from '@material-ui/icons/HighlightOff';
+import BackspaceIcon from '@material-ui/icons/Backspace';
 import { ChromePicker } from 'react-color';
 import ChartTypesList from 'dan-components/Charts/ChartTypesList';
 import DatawarehouseServices from '../../Services/datawarehouse';
@@ -81,6 +82,21 @@ class ChartSettings extends Component {
       }
     );
   }
+
+  handleDeleteChart = () => {
+    const { chartId, charts, setWorkspaceCharts } = this.props;
+    let newCharts = [];
+    if (charts.length === 1) {
+      newCharts = [];
+    } else if (chartId === 0) {
+      newCharts = charts.splice(1, charts.length);
+    } else {
+      newCharts = charts
+        .splice(0, chartId)
+        .concat(charts.splice(chartId, charts.length));
+    }
+    setWorkspaceCharts(newCharts);
+  };
 
   handleShowChoose = () => {
     const { isChooseChart } = this.state;
@@ -852,6 +868,15 @@ class ChartSettings extends Component {
               </Button>
             </div>
           </Collapse>
+          <div className={classes.divCenter}>
+            <Button
+              endIcon={<BackspaceIcon />}
+              style={{ marginTop: '10px' }}
+              onClick={this.handleDeleteChart}
+            >
+              Delete chart
+            </Button>
+          </div>
         </div>
       </div>
     );

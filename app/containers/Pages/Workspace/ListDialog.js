@@ -41,7 +41,7 @@ function ListDialog(props) {
   };
 
   const chooseTable = () => (
-    <Table aria-label="Choose database">
+    <Table aria-label="Choose template">
       <TableHead>
         <TableRow>
           <TableCell />
@@ -60,7 +60,7 @@ function ListDialog(props) {
               />
             </TableCell>
             <TableCell component="th" scope="row">
-              {'Template ' + index}
+              {row.name}
             </TableCell>
             <TableCell align="left">
               <IconButton

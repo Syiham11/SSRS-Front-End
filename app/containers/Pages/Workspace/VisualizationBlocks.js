@@ -29,6 +29,7 @@ const styles = theme => ({
   divCenter: {
     display: 'flex',
     justifyContent: 'center',
+    alignItems: 'center',
     [theme.breakpoints.down('xs')]: {
       flexDirection: 'column',
       '& button': {
@@ -106,6 +107,21 @@ const styles = theme => ({
     position: 'fixed',
     top: 'calc(50% - 75px)',
     left: 'calc(50% - 75px)'
+  },
+  button: {
+    background: 'none',
+    padding: 0,
+    textTransform: 'none',
+    transition: 'color ease 0.3s',
+    fontWeight: theme.typography.fontWeightRegular,
+    margin: theme.spacing(2),
+    fontSize: '18px',
+    width: 50,
+    height: 50,
+    '&:hover': {
+      background: 'none',
+      color: theme.palette.secondary.main
+    }
   }
 });
 
@@ -371,15 +387,21 @@ class VisualizationBlock extends Component {
             </div> */
           ))}
           <div className={classes.divCenter}>
-            <IconButton
-              aria-label="Add"
-              onClick={() => this.handleAddChart()}
-              size="large"
-              classes={{ root: classes.iconRoot, label: classes.iconButton }}
-            >
-              <AddCircleOutlineIcon />
-              <div>Insert new Chart</div>
-            </IconButton>
+            <Tooltip title="Add chart">
+              <IconButton
+                aria-label="add chart"
+                className={classes.button}
+                onClick={() => this.handleAddChart()}
+              >
+                <div
+                  className={classes.divCenter}
+                  style={{ flexDirection: 'column' }}
+                >
+                  <AddCircleOutlineIcon />
+                  <Typography variant="subtitle1">Insert new Chart</Typography>
+                </div>
+              </IconButton>
+            </Tooltip>
           </div>
         </div>
       </div>

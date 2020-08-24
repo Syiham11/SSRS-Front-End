@@ -28,5 +28,14 @@ class ImportServices {
     dataSource,
     config
   );
+
+  extractExcelData = (file, sheetNumber, conf) => axios.post(`${API_URL}/import/file/excel&sheet=${sheetNumber}`, file, conf);
+
+  extractCsvData = (file, csvHeaderState, conf) => axios.post(
+    `${API_URL}/import/file/csv&header=${csvHeaderState}`,
+    file,
+    conf
+  );
 }
+
 export default new ImportServices();
