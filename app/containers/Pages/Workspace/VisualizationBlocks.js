@@ -236,7 +236,10 @@ class VisualizationBlock extends Component {
 
   render() {
     const { isRenameWorkspace, wsTitle, isSpinnerShowed } = this.state;
-    const { classes, workspaceTitle, charts } = this.props;
+    const {
+      classes, workspaceTitle, charts,
+      own
+    } = this.props;
     return (
       <div>
         {isSpinnerShowed ? (
@@ -316,14 +319,18 @@ class VisualizationBlock extends Component {
                   alignItems: 'center'
                 }}
               >
-                <Tooltip title="Rename">
-                  <span className={classes.iconTitle}>
-                    <Ionicon
-                      icon="ios-create-outline"
-                      onClick={this.renameWorkspace}
-                    />
-                  </span>
-                </Tooltip>
+                {
+                  own ? (
+                    <Tooltip title="Rename">
+                      <span className={classes.iconTitle}>
+                        <Ionicon
+                          icon="ios-create-outline"
+                          onClick={this.renameWorkspace}
+                        />
+                      </span>
+                    </Tooltip>
+                  ) : (<div />)
+                }
                 <Tooltip title="Save">
                   <span className={classes.iconTitle}>
                     <Ionicon
@@ -386,7 +393,8 @@ VisualizationBlock.propTypes = {
   charts: PropTypes.array.isRequired,
   handleSetType: PropTypes.func.isRequired,
   addWorkspaceChart: PropTypes.func.isRequired,
-  setWorkspaceTitle: PropTypes.func.isRequired
+  setWorkspaceTitle: PropTypes.func.isRequired,
+  own: PropTypes.bool.isRequired
 };
 
 const mapStateToProps = state => ({

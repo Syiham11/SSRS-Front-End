@@ -12,7 +12,8 @@ import ReportEditor from './ReportEditor';
 
 class WorkspaceComponent extends Component {
   state = {
-    type: 'workspaces'
+    type: 'workspaces',
+    own: true
   };
 
   componentWillUnmount() {
@@ -45,8 +46,14 @@ class WorkspaceComponent extends Component {
     });
   };
 
+  handleSetOwn = own => {
+    this.setState({
+      own
+    });
+  };
+
   render() {
-    const { type } = this.state;
+    const { type, own } = this.state;
     const title = brand.name + ' - Workspace';
     const description = brand.desc;
     return (
@@ -60,12 +67,12 @@ class WorkspaceComponent extends Component {
           <meta property="twitter:description" content={description} />
         </Helmet>
         <Collapse in={type === 'workspaces'}>
-          <WorkspaceList handleSetType={this.handleSetType} />
+          <WorkspaceList handleSetType={this.handleSetType} handleSetOwn={this.handleSetOwn} />
         </Collapse>
         {type === 'visualize' || type === 'report' ? (
           <div>
             <Collapse in={type === 'visualize'}>
-              <VisualizationBlocks handleSetType={this.handleSetType} />
+              <VisualizationBlocks handleSetType={this.handleSetType} own={own} />
             </Collapse>
             <Collapse in={type === 'report'}>
               <ReportEditor handleSetType={this.handleSetType} type={type} />
