@@ -50,12 +50,11 @@ const reader = new FileReader();
 class ImportFile extends Component {
   state = {
     selectedFileType: '',
-    selectedSeparator: '',
+    separator: '',
     selectedFileName: 'Browse files',
     dialogOpen: false,
     dialogValue: '',
     file: {},
-    requiredSeparator: false,
     sheetNumber: 0,
     csvHeaderState: '',
     isImport: false
@@ -67,7 +66,7 @@ class ImportFile extends Component {
   };
 
   handleSeparatorChange = event => {
-    this.setState({ selectedSeparator: event.target.value });
+    this.setState({ separator: event.target.value });
   };
 
   handleUploadClick = () => {
@@ -85,7 +84,11 @@ class ImportFile extends Component {
 
   handleImportClick = () => {
     const {
-      file, selectedFileType, csvHeaderState, sheetNumber
+      file,
+      selectedFileType,
+      csvHeaderState,
+      sheetNumber,
+      separator
     } = this.state;
     const {
       handleNext,
@@ -139,6 +142,74 @@ class ImportFile extends Component {
             isImport: false
           });
         });
+    } else if (selectedFileType === 'XML') {
+      ImportServices.extractXmlData(data, config)
+        .then(response => {
+          let dataResponse = response.data;
+          let bool = true;
+          while (bool) {
+            dataResponse = dataResponse[Object.keys(dataResponse)[0]];
+
+            if (Object.keys(dataResponse).length > 1) {
+              bool = false;
+            }
+          }
+          console.log(dataResponse);
+          setTableData(dataResponse);
+          setTableOriginalData(dataResponse);
+          setTableName(file.name);
+          setTimeout(() => {
+            handleNext();
+          }, 500);
+        })
+        .catch(() => {
+          this.setState({
+            isImport: false
+          });
+        });
+    } else if (selectedFileType === 'TXT') {
+      let separatorCoded = null;
+      if (separator === 'Comma') {
+        separatorCoded = encodeURIComponent(',');
+      } else if (separator === 'Semicolon') {
+        separatorCoded = encodeURIComponent(';');
+      } else {
+        separatorCoded = encodeURIComponent('.');
+      }
+      separatorCoded = separatorCoded.slice(1, separatorCoded.length);
+      ImportServices.extractTxtData(
+        data,
+        csvHeaderState,
+        separatorCoded,
+        config
+      )
+        .then(response => {
+          console.log(response.data);
+          setTableData(response.data);
+          setTableOriginalData(response.data);
+          setTableName(file.name);
+          setTimeout(() => {
+            handleNext();
+          }, 500);
+        })
+        .catch(() => {
+          this.setState({
+            isImport: false
+          });
+        });
+    } else if (selectedFileType === 'DWG') {
+      ImportServices.extractDwgData(data, config)
+        .then(response => {
+          console.log(response.data);
+          this.setState({
+            isImport: false
+          });
+        })
+        .catch(() => {
+          this.setState({
+            isImport: false
+          });
+        });
     }
   };
 
@@ -175,11 +246,10 @@ class ImportFile extends Component {
   render() {
     const {
       selectedFileType,
-      selectedSeparator,
+      separator,
       selectedFileName,
       dialogOpen,
       dialogValue,
-      requiredSeparator,
       sheetNumber,
       csvHeaderState,
       isImport
@@ -229,30 +299,6 @@ class ImportFile extends Component {
                   </FormControl>
                 </Grid>
 
-                {requiredSeparator === true ? (
-                  <Grid item xs={7}>
-                    <FormControl
-                      className={classes.formControl}
-                      fullWidth
-                      required
-                    >
-                      <InputLabel>Separator</InputLabel>
-                      <Select
-                        name="separator"
-                        value={selectedSeparator}
-                        onChange={this.handleSeparatorChange}
-                      >
-                        {separators.map(separator => (
-                          <MenuItem key={separator.id} value={separator.name}>
-                            {separator.id}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
-                  </Grid>
-                ) : (
-                  <div />
-                )}
                 {selectedFileType === 'XLSX' ? (
                   <Grid item xs={7}>
                     <TextField
@@ -275,6 +321,58 @@ class ImportFile extends Component {
                       <FormControl component="fieldset">
                         <FormLabel component="legend">
                           CSV file contains header?
+                        </FormLabel>
+                        <RadioGroup
+                          aria-label="csvHeader"
+                          name="csvHeader"
+                          value={csvHeaderState}
+                          onChange={this.handleChangeCsvHeaderState}
+                          row
+                          className={classes.divCenter}
+                        >
+                          <FormControlLabel
+                            value="true"
+                            control={<Radio />}
+                            label="Yes"
+                          />
+                          <FormControlLabel
+                            value="false"
+                            control={<Radio />}
+                            label="No"
+                          />
+                        </RadioGroup>
+                      </FormControl>
+                    </div>
+                  </Grid>
+                ) : (
+                  <div />
+                )}
+                {selectedFileType === 'TXT' ? (
+                  <Grid item xs={7}>
+                    <div className={classes.divCenter}>
+                      <FormControl
+                        className={classes.formControl}
+                        fullWidth
+                        required
+                      >
+                        <InputLabel>Separator</InputLabel>
+                        <Select
+                          name="separator"
+                          value={separator}
+                          onChange={this.handleSeparatorChange}
+                        >
+                          {separators.map(sep => (
+                            <MenuItem key={sep.id} value={sep.name}>
+                              {sep.id}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    </div>
+                    <div className={classes.divCenter}>
+                      <FormControl component="fieldset">
+                        <FormLabel component="legend">
+                          Text file contains header?
                         </FormLabel>
                         <RadioGroup
                           aria-label="csvHeader"

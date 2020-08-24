@@ -36,6 +36,16 @@ class ImportServices {
     file,
     conf
   );
+
+  extractXmlData = (file, conf) => axios.post(`${API_URL}/import/file/xml`, file, conf);
+
+  extractTxtData = (file, txtHeaderState, separator, conf) => axios.post(
+    `${API_URL}/import/file/txt&header=${txtHeaderState}&separator=${separator}`,
+    file,
+    conf
+  );
+
+  extractDwgData = (file, conf) => axios.post(`${API_URL}/import/file/dwg`, file, conf);
 }
 
 export default new ImportServices();
