@@ -18,7 +18,7 @@ module.exports = [
       {
         key: 'algorithm',
         name: 'Algorithms Page',
-        link: '/app/algorithms-home',
+        link: '/app/algorithms',
         icon: 'ios-document-outline'
       },
       {

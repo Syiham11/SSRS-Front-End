@@ -3,7 +3,7 @@ import { Helmet } from 'react-helmet';
 import { PropTypes } from 'prop-types';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { Collapse } from '@material-ui/core';
+import { Collapse, Slide } from '@material-ui/core';
 import { setCharts } from 'dan-actions/workspaceActions';
 import brand from 'dan-api/dummy/brand';
 import WorkspaceList from './WorkspaceList';
@@ -66,18 +66,31 @@ class WorkspaceComponent extends Component {
           <meta property="twitter:title" content={title} />
           <meta property="twitter:description" content={description} />
         </Helmet>
-        <Collapse in={type === 'workspaces'}>
-          <WorkspaceList handleSetType={this.handleSetType} handleSetOwn={this.handleSetOwn} />
-        </Collapse>
+        <Slide
+          direction="right"
+          in={type === 'workspaces'}
+          style={{ transitionDelay: type === 'workspaces' ? '500ms' : '0ms' }}
+          mountOnEnter
+          unmountOnExit
+        >
+          <div>
+            <WorkspaceList
+              handleSetType={this.handleSetType}
+              handleSetOwn={this.handleSetOwn}
+            />
+          </div>
+        </Slide>
         {type === 'visualize' || type === 'report' ? (
           <div>
             <Collapse in={type === 'visualize'}>
-              <VisualizationBlocks handleSetType={this.handleSetType} own={own} />
+              <VisualizationBlocks
+                handleSetType={this.handleSetType}
+                own={own}
+              />
             </Collapse>
             <Collapse in={type === 'report'}>
               <ReportEditor handleSetType={this.handleSetType} type={type} />
             </Collapse>
-            {' '}
           </div>
         ) : (
           <div />

@@ -16,6 +16,7 @@ import PropTypes from 'prop-types';
 import AddCircleOutlineIcon from '@material-ui/icons/AddCircleOutline';
 import ChartBlock from './ChartBlock';
 import WorkspaceServices from '../../Services/workspace';
+import Notification from '../../../components/Notification/Notification';
 
 const styles = theme => ({
   globalArea: {
@@ -130,7 +131,8 @@ class VisualizationBlock extends Component {
     id: 1,
     isRenameWorkspace: false,
     wsTitle: '',
-    isSpinnerShowed: true
+    isSpinnerShowed: true,
+    notifMessage: ''
   };
 
   componentDidMount() {
@@ -244,20 +246,40 @@ class VisualizationBlock extends Component {
               console.log(error.message);
             });
         }
+        this.setState({
+          notifMessage: 'Workspace saved'
+        });
       })
       .catch(error => {
         console.log(error.message);
       });
   };
 
+  openNotif = message => {
+    this.setState({
+      notifMessage: message
+    });
+  };
+
+  closeNotif = () => {
+    this.setState({
+      notifMessage: ''
+    });
+  };
+
   render() {
-    const { isRenameWorkspace, wsTitle, isSpinnerShowed } = this.state;
     const {
-      classes, workspaceTitle, charts,
-      own
+      isRenameWorkspace,
+      wsTitle,
+      isSpinnerShowed,
+      notifMessage
+    } = this.state;
+    const {
+      classes, workspaceTitle, charts, own
     } = this.props;
     return (
       <div>
+        <Notification message={notifMessage} close={this.closeNotif} />
         {isSpinnerShowed ? (
           <div>
             <img
@@ -335,18 +357,18 @@ class VisualizationBlock extends Component {
                   alignItems: 'center'
                 }}
               >
-                {
-                  own ? (
-                    <Tooltip title="Rename">
-                      <span className={classes.iconTitle}>
-                        <Ionicon
-                          icon="ios-create-outline"
-                          onClick={this.renameWorkspace}
-                        />
-                      </span>
-                    </Tooltip>
-                  ) : (<div />)
-                }
+                {own ? (
+                  <Tooltip title="Rename">
+                    <span className={classes.iconTitle}>
+                      <Ionicon
+                        icon="ios-create-outline"
+                        onClick={this.renameWorkspace}
+                      />
+                    </span>
+                  </Tooltip>
+                ) : (
+                  <div />
+                )}
                 <Tooltip title="Save">
                   <span className={classes.iconTitle}>
                     <Ionicon

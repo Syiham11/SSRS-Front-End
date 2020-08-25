@@ -214,11 +214,11 @@ export class ReportEditor extends Component {
   }
 
   /* eslint-disable*/
-  componentDidUpdate(PreviousProps) {
+  componentDidUpdate(oldProps) {
     const { chartList } = this.props;
     const { isSpinnerShowed, isLoadTemplate, pages, elements } = this.state;
     console.log(elements);
-    if (PreviousProps.chartList !== chartList) {
+    if (oldProps.chartList !== chartList) {
       setTimeout(() => {
         this.updateReportData();
       }, 500);

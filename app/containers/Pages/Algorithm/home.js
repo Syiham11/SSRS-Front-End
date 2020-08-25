@@ -1,15 +1,11 @@
 import React from 'react';
-import { Helmet } from 'react-helmet';
-import brand from 'dan-api/dummy/brand';
 import withStyles from '@material-ui/core/styles/withStyles';
 import { IconButton, Tooltip } from '@material-ui/core';
 import UpdateIcon from '@material-ui/icons/Update';
 import AddIcon from '@material-ui/icons/Add';
 import { PropTypes } from 'prop-types';
 import MaterialTable from 'material-table';
-import PapperBlock from '../../../components/PapperBlock/PapperBlock';
 import AlgorithmsServices from '../../Services/algorithm.js';
-import history from '../../../utils/history';
 import Notification from '../../../components/Notification/Notification';
 
 const styles = theme => ({
@@ -84,15 +80,18 @@ class AlgorithmHome extends React.Component {
   getAlgorithms = () => {
     AlgorithmsServices.getAllAlgorithms().then(result => {
       const colAlgo = [];
-      Object.keys(result.data[0]).forEach(c => {
-        if (c !== 'algoId' && c !== 'user') {
-          const cl = {
-            title: c,
-            field: c
-          };
-          colAlgo.push(cl);
-        }
-      });
+      console.log(result.data);
+      if (result.data.length > 0) {
+        Object.keys(result.data[0]).forEach(c => {
+          if (c !== 'algoId' && c !== 'user') {
+            const cl = {
+              title: c,
+              field: c
+            };
+            colAlgo.push(cl);
+          }
+        });
+      }
       this.setState({
         columns: colAlgo,
         data: result.data
@@ -109,7 +108,8 @@ class AlgorithmHome extends React.Component {
   };
 
   handleCreateAlgorithm = () => {
-    history.push('/app/algorithms');
+    const { changeCreateAlgo } = this.props;
+    changeCreateAlgo(true);
   };
 
   handleRefresh = () => {
@@ -129,76 +129,62 @@ class AlgorithmHome extends React.Component {
   };
 
   render() {
-    const title = brand.name + ' - Algorithms';
-    const description = brand.desc;
     const { classes } = this.props;
     const { data, columns, notifMessage } = this.state;
     return (
       <div>
-        <Helmet>
-          <title>{title}</title>
-          <meta name="description" content={description} />
-          <meta property="og:title" content={title} />
-          <meta property="og:description" content={description} />
-        </Helmet>
         <Notification message={notifMessage} close={this.closeNotif} />
-        <PapperBlock
-          title="Algorithms"
-          desc=""
-          whiteBg
-          noMargin
-          icon="md-options"
-        >
-          <div className={classes.settingDiv}>
-            <div>
-              <Tooltip title="Add new algorithm">
-                <IconButton
-                  size="small"
-                  className={classes.timeBtn}
-                  onClick={this.handleCreateAlgorithm}
-                  aria-label="upload picture"
-                  component="span"
-                >
-                  <AddIcon />
-                </IconButton>
-              </Tooltip>
-              <Tooltip title="Refresh">
-                <IconButton
-                  size="small"
-                  className={classes.timeBtn}
-                  onClick={this.handleRefresh}
-                  aria-label="upload picture"
-                  component="span"
-                >
-                  <UpdateIcon />
-                </IconButton>
-              </Tooltip>
-            </div>
+
+        <div className={classes.settingDiv}>
+          <div>
+            <Tooltip title="Add new algorithm">
+              <IconButton
+                size="small"
+                className={classes.timeBtn}
+                onClick={this.handleCreateAlgorithm}
+                aria-label="upload picture"
+                component="span"
+              >
+                <AddIcon />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Refresh">
+              <IconButton
+                size="small"
+                className={classes.timeBtn}
+                onClick={this.handleRefresh}
+                aria-label="upload picture"
+                component="span"
+              >
+                <UpdateIcon />
+              </IconButton>
+            </Tooltip>
           </div>
-          <MaterialTable
-            title="Algorithms"
-            columns={columns}
-            data={data}
-            options={{
-              search: false,
-              grouping: true,
-              showSelectAllCheckbox: true,
-              actionsColumnIndex: -1
-            }}
-            actions={[
-              {
-                icon: 'delete',
-                tooltip: 'Delete algorithm',
-                onClick: (event, rowData) => this.handleDeleteAlgorithm(rowData)
-              }
-            ]}
-          />
-        </PapperBlock>
+        </div>
+        <MaterialTable
+          title="Algorithms"
+          columns={columns}
+          data={data}
+          options={{
+            search: false,
+            grouping: true,
+            showSelectAllCheckbox: true,
+            actionsColumnIndex: -1
+          }}
+          actions={[
+            {
+              icon: 'delete',
+              tooltip: 'Delete algorithm',
+              onClick: (event, rowData) => this.handleDeleteAlgorithm(rowData)
+            }
+          ]}
+        />
       </div>
     );
   }
 }
 AlgorithmHome.propTypes = {
-  classes: PropTypes.object.isRequired
+  classes: PropTypes.object.isRequired,
+  changeCreateAlgo: PropTypes.func.isRequired
 };
 export default withStyles(styles)(AlgorithmHome);

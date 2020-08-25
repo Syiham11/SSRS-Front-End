@@ -22,6 +22,9 @@ import {
   Checkbox,
   Tooltip
 } from '@material-ui/core';
+import LaunchIcon from '@material-ui/icons/Launch';
+import ShareIcon from '@material-ui/icons/Share';
+import DeleteForeverIcon from '@material-ui/icons/DeleteForever';
 import WorkspaceServices from '../../Services/workspace';
 import SharewithServices from '../../Services/sharewith';
 
@@ -53,33 +56,34 @@ class WorkspaceList extends Component {
 
   handleOpenWorkspace = (workspaceId, index, type) => {
     const {
-      setWorkspaceCharts, setWorkspaceTitle, handleSetType,
+      setWorkspaceCharts,
+      setWorkspaceTitle,
+      handleSetType,
       handleSetOwn
     } = this.props;
     const { workspaces, workspaceShared } = this.state;
-    WorkspaceServices.getCharts(workspaceId)
-      .then(response => {
-        const list = [];
-        const array = response.data;
-        let id = 0;
-        array.forEach(element => {
-          const obj = {
-            id,
-            settings: JSON.parse(element.settings)
-          };
-          list.push(obj);
-          id += 1;
-        });
-        setWorkspaceCharts(list);
-        if (type === 'own') {
-          setWorkspaceTitle(workspaces[index].title);
-          handleSetOwn(true);
-        } else {
-          setWorkspaceTitle(workspaceShared[index].title);
-          handleSetOwn(false);
-        }
-        handleSetType('visualize');
+    WorkspaceServices.getCharts(workspaceId).then(response => {
+      const list = [];
+      const array = response.data;
+      let id = 0;
+      array.forEach(element => {
+        const obj = {
+          id,
+          settings: JSON.parse(element.settings)
+        };
+        list.push(obj);
+        id += 1;
       });
+      setWorkspaceCharts(list);
+      if (type === 'own') {
+        setWorkspaceTitle(workspaces[index].title);
+        handleSetOwn(true);
+      } else {
+        setWorkspaceTitle(workspaceShared[index].title);
+        handleSetOwn(false);
+      }
+      handleSetType('visualize');
+    });
   };
 
   handleCheck = (event, userId) => {
@@ -115,7 +119,9 @@ class WorkspaceList extends Component {
     console.log(index);
     this.setState({ workspaceId });
     SharewithServices.getUsers(workspaceId).then(usersdata => {
-      usersdata.data.forEach(user => { user.checked = false; });
+      usersdata.data.forEach(user => {
+        user.checked = false;
+      });
       this.setState({ open: true, users: usersdata.data });
     });
   };
@@ -167,12 +173,14 @@ class WorkspaceList extends Component {
   handleGetUserToShare = () => {
     const { workspaceId } = this.state;
     SharewithServices.getUsers(workspaceId).then(usersdata => {
-      usersdata.data.forEach(user => { user.checked = false; });
+      usersdata.data.forEach(user => {
+        user.checked = false;
+      });
       this.setState({ deleteFrom: false, users: usersdata.data });
     });
   };
 
-  handleDeleteWorkspaceUsers = (email) => {
+  handleDeleteWorkspaceUsers = email => {
     const { workspaceId } = this.state;
     SharewithServices.deleteUserFromSharing(workspaceId, email).then(result => {
       console.log(result);
@@ -182,8 +190,11 @@ class WorkspaceList extends Component {
 
   render() {
     const {
-      workspaces, open, users,
-      usersChecked, workspaceShared,
+      workspaces,
+      open,
+      users,
+      usersChecked,
+      workspaceShared,
       deleteFrom
     } = this.state;
     console.log(deleteFrom);
@@ -214,27 +225,40 @@ class WorkspaceList extends Component {
                   </TableCell>
                   <TableCell align="left">{row.creationTime}</TableCell>
                   <TableCell align="right" scope="row">
-                    <Button
-                      value={index}
-                      onClick={() => this.handleOpenWorkspace(row.workspaceId, index, 'own')
-                      }
-                    >
-                      Open
-                    </Button>
-                    <Button
-                      value={index}
-                      onClick={() => this.handleOpenUsersDialog(row.workspaceId, index)
-                      }
-                    >
-                      Share
-                    </Button>
-                    <Button
-                      value={index}
-                      onClick={() => this.handleDeleteWorkspace(row)}
-                      color="primary"
-                    >
-                      delete
-                    </Button>
+                    <Tooltip title="Open workspace">
+                      <IconButton
+                        aria-label="openWorkspace"
+                        value={index}
+                        onClick={() => this.handleOpenWorkspace(
+                          row.workspaceId,
+                          index,
+                          'own'
+                        )
+                        }
+                      >
+                        <LaunchIcon />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Share workspace">
+                      <IconButton
+                        aria-label="shareWorkspace"
+                        value={index}
+                        onClick={() => this.handleOpenUsersDialog(row.workspaceId, index)
+                        }
+                      >
+                        <ShareIcon />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Delete workspace">
+                      <IconButton
+                        aria-label="deleteWorkspace"
+                        value={index}
+                        onClick={() => this.handleDeleteWorkspace(row)}
+                        color="primary"
+                      >
+                        <DeleteForeverIcon />
+                      </IconButton>
+                    </Tooltip>
                   </TableCell>
                 </TableRow>
               ))}
@@ -305,25 +329,27 @@ class WorkspaceList extends Component {
               <Typography variant="caption" gutterBottom align="center">
                 Choose users
               </Typography>
-              {
-                usersChecked ? (
-                  <Typography
-                    variant="subtitle2"
-                    gutterBottom
-                    align="center"
-                    color="primary"
-                  >
-                    choose at least one user
-                  </Typography>
-                ) : (<div />)
-              }
-              {
-                deleteFrom ? (
-                  <Button onClick={this.handleGetUserToShare}>Share with Users</Button>
-                ) : (
-                  <Button onClick={this.handleDeleteUsers}>Remove Users from sharing</Button>
-                )
-              }
+              {usersChecked ? (
+                <Typography
+                  variant="subtitle2"
+                  gutterBottom
+                  align="center"
+                  color="primary"
+                >
+                  choose at least one user
+                </Typography>
+              ) : (
+                <div />
+              )}
+              {deleteFrom ? (
+                <Button onClick={this.handleGetUserToShare}>
+                  Share with Users
+                </Button>
+              ) : (
+                <Button onClick={this.handleDeleteUsers}>
+                  Remove Users from sharing
+                </Button>
+              )}
               <Table aria-label="Formulas">
                 <TableHead>
                   <TableRow>
@@ -334,32 +360,34 @@ class WorkspaceList extends Component {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {users.map((row) => (
+                  {users.map(row => (
                     <TableRow key={row.username}>
-                      {
-                        !deleteFrom ? (
-                          <TableCell padding="checkbox">
-                            <Checkbox
-                              checked={row.checked}
-                              onChange={(event) => this.handleCheck(event, row.userId)}
-                            />
-                          </TableCell>
-                        ) : (<div />)
-                      }
+                      {!deleteFrom ? (
+                        <TableCell padding="checkbox">
+                          <Checkbox
+                            checked={row.checked}
+                            onChange={event => this.handleCheck(event, row.userId)
+                            }
+                          />
+                        </TableCell>
+                      ) : (
+                        <div />
+                      )}
                       <TableCell align="left">{row.username}</TableCell>
                       <TableCell align="left">{row.email}</TableCell>
-                      {
-                        deleteFrom ? (
-                          <TableCell align="right" scope="row">
-                            <Button
-                              onClick={() => this.handleDeleteWorkspaceUsers(row.email)}
-                              color="primary"
-                            >
-                              delete
-                            </Button>
-                          </TableCell>
-                        ) : (<div />)
-                      }
+                      {deleteFrom ? (
+                        <TableCell align="right" scope="row">
+                          <Button
+                            onClick={() => this.handleDeleteWorkspaceUsers(row.email)
+                            }
+                            color="primary"
+                          >
+                            delete
+                          </Button>
+                        </TableCell>
+                      ) : (
+                        <div />
+                      )}
                     </TableRow>
                   ))}
                 </TableBody>
@@ -370,19 +398,17 @@ class WorkspaceList extends Component {
             <Button autoFocus color="primary" onClick={this.handleClose}>
               Cancel
             </Button>
-            {
-              deleteFrom ? (
-                <div />
-              ) : (
-                <Button
-                  color="primary"
-                  disabled={users.length === 0}
-                  onClick={this.handleSave}
-                >
-                  share
-                </Button>
-              )
-            }
+            {deleteFrom ? (
+              <div />
+            ) : (
+              <Button
+                color="primary"
+                disabled={users.length === 0}
+                onClick={this.handleSave}
+              >
+                share
+              </Button>
+            )}
           </DialogActions>
         </Dialog>
       </div>

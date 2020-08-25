@@ -69,11 +69,7 @@ export const Parent = Loadable({
   loader: () => import('./Parent'),
   loading: Loading
 });
-export const AlgorithmPage = Loadable({
-  loader: () => import('./Pages/Algorithm/index'),
-  loading: Loading
-});
-export const AlgorithmHomePage = Loadable({
-  loader: () => import('./Pages/Algorithm/home'),
+export const Algorithms = Loadable({
+  loader: () => import('./Pages/Algorithm'),
   loading: Loading
 });
