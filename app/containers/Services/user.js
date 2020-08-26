@@ -33,5 +33,12 @@ class UserServices {
     user,
     this.getToken()
   );
+
+  getToken = () => {
+    const token = sessionStorage.getItem('token');
+    return {
+      headers: { Authorization: token }
+    };
+  };
 }
 export default new UserServices();
