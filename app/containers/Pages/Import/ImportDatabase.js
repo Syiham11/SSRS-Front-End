@@ -325,7 +325,7 @@ class ImportDatabase extends Component {
   };
 
   handleDeleteDatabaseSource = dbs => {
-    ImportServices.deleteSource(dbs).then(response => {
+    ImportServices.deleteSource(dbs.databaseSourceId).then(response => {
       console.log(response.data);
       this.updateHistoryList();
     });

@@ -2,19 +2,32 @@ import axios from 'axios';
 import { API } from '../../config/apiUrl';
 const API_URL = API;
 
-const config = {
-  headers: { Authorization: sessionStorage.getItem('token') }
-};
-
 class SharewithServices {
-  getUsers = (workspaceId) => axios.get(`${API_URL}/sharewith/workspace/users/${workspaceId}`, config);
+  getToken = () => {
+    const token = sessionStorage.getItem('token');
+    return {
+      headers: { Authorization: token }
+    };
+  };
 
-  shareWorkspace = (workspaceId, shareWith) => axios.post(`${API_URL}/sharewith/${workspaceId}`, shareWith, config);
+  getUsers = workspaceId => axios.get(
+    `${API_URL}/sharewith/workspace/users/${workspaceId}`,
+    this.getToken()
+  );
 
-  getWorkspaceShared = () => axios.get(`${API_URL}/sharewith/workspace`, config);
+  shareWorkspace = (workspaceId, shareWith) => axios.post(
+    `${API_URL}/sharewith/${workspaceId}`,
+    shareWith,
+    this.getToken()
+  );
 
-  getWorkspaceUsers = (workspaceId) => axios.get(`${API_URL}/sharewith/${workspaceId}`, config);
+  getWorkspaceShared = () => axios.get(`${API_URL}/sharewith/workspace`, this.getToken());
 
-  deleteUserFromSharing = (workspaceId, email) => axios.delete(`${API_URL}/sharewith/delete/user/${workspaceId}/${email}`, config);
+  getWorkspaceUsers = workspaceId => axios.get(`${API_URL}/sharewith/${workspaceId}`, this.getToken());
+
+  deleteUserFromSharing = (workspaceId, email) => axios.delete(
+    `${API_URL}/sharewith/delete/user/${workspaceId}/${email}`,
+    this.getToken()
+  );
 }
 export default new SharewithServices();

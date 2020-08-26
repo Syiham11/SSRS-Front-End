@@ -2,23 +2,26 @@ import axios from 'axios';
 import { API } from '../../config/apiUrl';
 const API_URL = API;
 
-const config = {
-  headers: { Authorization: sessionStorage.getItem('token') }
-};
-
 class DashboardServices {
-  save = dashboard => axios.post(`${API_URL}/dashboard/save`, dashboard, config);
+  getToken = () => {
+    const token = sessionStorage.getItem('token');
+    return {
+      headers: { Authorization: token }
+    };
+  };
+
+  save = dashboard => axios.post(`${API_URL}/dashboard/save`, dashboard, this.getToken());
 
   getDataByRows = (tableName, rows) => axios.get(
     `${API_URL}/dashboard/data/getbyrows/${tableName}&${rows}`,
-    config
+    this.getToken()
   );
 
   getDataByRange = (tableName, firstLimit, lastLimit) => axios.get(
     `${API_URL}/dashboard/data/getbyrange/${tableName}&${firstLimit}&${lastLimit}`,
-    config
+    this.getToken()
   );
 
-  getCharts = () => axios.get(`${API_URL}/dashboard/charts`, config);
+  getCharts = () => axios.get(`${API_URL}/dashboard/charts`, this.getToken());
 }
 export default new DashboardServices();

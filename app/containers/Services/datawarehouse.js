@@ -2,25 +2,32 @@ import axios from 'axios';
 import { API } from '../../config/apiUrl';
 const API_URL = API;
 
-const config = {
-  headers: { Authorization: sessionStorage.getItem('token') }
-};
-
 class DatawarehouseServices {
-  loadData = (tableName, data) => axios.post(`${API_URL}/datawarehouse/load/` + tableName, data, config);
+  getToken = () => {
+    const token = sessionStorage.getItem('token');
+    return {
+      headers: { Authorization: token }
+    };
+  };
 
-  getTables = () => axios.get(`${API_URL}/datawarehouse/tables`, config);
+  loadData = (tableName, data) => axios.post(
+    `${API_URL}/datawarehouse/load/` + tableName,
+    data,
+    this.getToken()
+  );
 
-  getData = tableName => axios.get(`${API_URL}/datawarehouse/data/${tableName}`, config);
+  getTables = () => axios.get(`${API_URL}/datawarehouse/tables`, this.getToken());
+
+  getData = tableName => axios.get(`${API_URL}/datawarehouse/data/${tableName}`, this.getToken());
 
   getDataByRows = (tableName, rows) => axios.get(
     `${API_URL}/datawarehouse/data/getbyrows/${tableName}&${rows}`,
-    config
+    this.getToken()
   );
 
   getDataByRange = (tableName, firstLimit, lastLimit) => axios.get(
     `${API_URL}/datawarehouse/data/getbyrange/${tableName}&${firstLimit}&${lastLimit}`,
-    config
+    this.getToken()
   );
 }
 export default new DatawarehouseServices();

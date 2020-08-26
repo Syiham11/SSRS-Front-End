@@ -2,17 +2,20 @@ import axios from 'axios';
 import { API } from '../../config/apiUrl';
 const API_URL = API;
 
-const config = {
-  headers: { Authorization: sessionStorage.getItem('token') }
-};
-
 class FormulaServices {
-  getAll = () => axios.get(`${API_URL}/formula/getAll`, config);
+  getToken = () => {
+    const token = sessionStorage.getItem('token');
+    return {
+      headers: { Authorization: token }
+    };
+  };
 
-  solve = formulaElements => axios.post(`${API_URL}/formula/solve`, formulaElements, config);
+  getAll = () => axios.get(`${API_URL}/formula/getAll`, this.getToken());
 
-  save = formula => axios.post(`${API_URL}/formula/insert`, formula, config);
+  solve = formulaElements => axios.post(`${API_URL}/formula/solve`, formulaElements, this.getToken());
 
-  delete = formula => axios.post(`${API_URL}/formula/delete`, formula, config);
+  save = formula => axios.post(`${API_URL}/formula/insert`, formula, this.getToken());
+
+  delete = id => axios.delete(`${API_URL}/formula/delete/id=${id}`, this.getToken());
 }
 export default new FormulaServices();

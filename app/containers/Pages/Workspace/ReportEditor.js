@@ -617,7 +617,7 @@ export class ReportEditor extends Component {
   };
 
   handleDeleteTemplate = tmp => {
-    ReportServices.delete(tmp).then(() => {
+    ReportServices.delete(tmp.reportTemplateId).then(() => {
       this.updateHistoryList();
     });
   };

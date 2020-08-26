@@ -2,21 +2,24 @@ import axios from 'axios';
 import { API } from '../../config/apiUrl';
 const API_URL = API;
 
-const config = {
-  headers: { Authorization: sessionStorage.getItem('token') }
-};
-
 class WorkspaceServices {
-  getAll = () => axios.get(`${API_URL}/workspace/getAll`, config);
+  getToken = () => {
+    const token = sessionStorage.getItem('token');
+    return {
+      headers: { Authorization: token }
+    };
+  };
 
-  getCharts = id => axios.get(`${API_URL}/workspace/${id}/charts`, config);
+  getAll = () => axios.get(`${API_URL}/workspace/getAll`, this.getToken());
 
-  save = workspace => axios.post(`${API_URL}/workspace/save`, workspace, config);
+  getCharts = id => axios.get(`${API_URL}/workspace/${id}/charts`, this.getToken());
 
-  delete = workspace => axios.post(`${API_URL}/workspace/delete`, workspace, config);
+  save = workspace => axios.post(`${API_URL}/workspace/save`, workspace, this.getToken());
 
-  update = workspace => axios.post(`${API_URL}/workspace/update`, workspace, config);
+  delete = id => axios.delete(`${API_URL}/workspace/delete/${id}`, this.getToken());
 
-  checkExistance = title => axios.get(`${API_URL}/workspace/checkExistence/${title}`, config);
+  update = workspace => axios.post(`${API_URL}/workspace/update`, workspace, this.getToken());
+
+  checkExistance = title => axios.get(`${API_URL}/workspace/checkExistence/${title}`, this.getToken());
 }
 export default new WorkspaceServices();
