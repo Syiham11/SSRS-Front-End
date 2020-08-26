@@ -2,17 +2,20 @@ import axios from 'axios';
 import { API } from '../../config/apiUrl';
 const API_URL = API;
 
-const config = {
-  headers: { Authorization: sessionStorage.getItem('token') }
-};
-
 class TaskServices {
-  getAll = () => axios.get(`${API_URL}/task/getAll`, config);
+  getToken = () => {
+    const token = sessionStorage.getItem('token');
+    return {
+      headers: { Authorization: token }
+    };
+  };
 
-  update = task => axios.post(`${API_URL}/task/update`, task, config);
+  getAll = () => axios.get(`${API_URL}/task/getAll`, this.getToken());
 
-  add = task => axios.post(`${API_URL}/task/add`, task, config);
+  update = task => axios.post(`${API_URL}/task/update`, task, this.getToken());
 
-  delete = task => axios.post(`${API_URL}/task/delete`, task, config);
+  add = task => axios.post(`${API_URL}/task/add`, task, this.getToken());
+
+  delete = id => axios.delete(`${API_URL}/task/delete/${id}`, this.getToken());
 }
 export default new TaskServices();

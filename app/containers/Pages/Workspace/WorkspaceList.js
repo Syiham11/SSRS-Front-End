@@ -131,7 +131,7 @@ class WorkspaceList extends Component {
   };
 
   handleDeleteWorkspace = workspace => {
-    WorkspaceServices.delete(workspace).then(() => {
+    WorkspaceServices.delete(workspace.workspaceId).then(() => {
       this.updateWorkspacesList();
     });
   };
@@ -188,6 +188,16 @@ class WorkspaceList extends Component {
     });
   };
 
+  formatDate = dateString => {
+    const date = new Date(dateString);
+    let toString = date.toISOString(date);
+    toString = toString
+      .substring(0, 10)
+      .concat(' ')
+      .concat(toString.substring(11, 16));
+    return toString;
+  };
+
   render() {
     const {
       workspaces,
@@ -223,7 +233,9 @@ class WorkspaceList extends Component {
                   <TableCell component="th" scope="row">
                     {row.title}
                   </TableCell>
-                  <TableCell align="left">{row.creationTime}</TableCell>
+                  <TableCell align="left">
+                    {this.formatDate(row.creationTime)}
+                  </TableCell>
                   <TableCell align="right" scope="row">
                     <Tooltip title="Open workspace">
                       <IconButton
@@ -297,16 +309,21 @@ class WorkspaceList extends Component {
                     {row.title}
                   </TableCell>
                   <TableCell align="left">{row.user.username}</TableCell>
-                  <TableCell align="left">{row.creationTime}</TableCell>
+                  <TableCell align="left">
+                    {this.formatDate(row.creationTime)}
+                  </TableCell>
                   <TableCell align="center">{row.lastUpdate}</TableCell>
                   <TableCell align="right" scope="row">
-                    <Button
-                      value={index}
-                      onClick={() => this.handleOpenWorkspace(row.workspaceId, index)
-                      }
-                    >
-                      Open
-                    </Button>
+                    <Tooltip title="Open workspace">
+                      <IconButton
+                        aria-label="openWorkspace"
+                        value={index}
+                        onClick={() => this.handleOpenWorkspace(row.workspaceId, index)
+                        }
+                      >
+                        <LaunchIcon />
+                      </IconButton>
+                    </Tooltip>
                   </TableCell>
                 </TableRow>
               ))}

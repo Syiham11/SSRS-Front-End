@@ -47,7 +47,9 @@ const styles = theme => ({
 export class AboutMe extends Component {
   formatDate = dateString => {
     const date = new Date(dateString);
-    return date.toISOString(date);
+    let toString = date.toISOString(date);
+    toString = toString.substring(0, 10);
+    return toString;
   };
 
   render() {
@@ -205,7 +207,7 @@ export class AboutMe extends Component {
                 opacity: 0.7
               }}
             >
-              {this.formatDate(user.creationTime).substring(0, 10)}
+              {this.formatDate(user.creationTime)}
             </Typography>
           </div>
         </div>

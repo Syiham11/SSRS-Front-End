@@ -74,7 +74,7 @@ class TaskMenu extends Component {
 
   handleDeleteTask = index => {
     const { tasks } = this.state;
-    TaskServices.delete(tasks[index]).then(response => {
+    TaskServices.delete(tasks[index].taskId).then(response => {
       console.log(response.data);
       this.updateTasksList();
     });

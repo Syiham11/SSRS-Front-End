@@ -2,31 +2,56 @@ import axios from 'axios';
 import { API } from '../../config/apiUrl';
 const API_URL = API;
 
-const config = {
-  headers: { Authorization: sessionStorage.getItem('token') }
-};
-
 class ImportServices {
-  testConnection = dataSource => axios.post(`${API_URL}/import/database/testconnection`, dataSource, config);
+  getToken = () => {
+    const token = sessionStorage.getItem('token');
+    return {
+      headers: { Authorization: token }
+    };
+  };
 
-  getTables = dataSource => axios.post(`${API_URL}/import/database/tables`, dataSource, config);
+  testConnection = dataSource => axios.post(
+    `${API_URL}/import/database/testConnection`,
+    dataSource,
+    this.getToken()
+  );
 
-  getSources = () => axios.get(`${API_URL}/import/database/getsources`, config);
+  getTables = dataSource => axios.post(
+    `${API_URL}/import/database/tables`,
+    dataSource,
+    this.getToken()
+  );
 
-  loadData = (data, tableName) => axios.post(`${API_URL}/import/database/load/${tableName}`, data, config);
+  getSources = () => axios.get(`${API_URL}/import/database/getSources`, this.getToken());
 
-  getHistoricTables = () => axios.get(`${API_URL}/import/database/gethistoric`, config);
+  loadData = (data, tableName) => axios.post(
+    `${API_URL}/import/database/load/${tableName}`,
+    data,
+    this.getToken()
+  );
 
-  saveSource = dataSource => axios.post(`${API_URL}/import/database/savesource`, dataSource, config);
+  getHistoricTables = () => axios.get(`${API_URL}/import/database/gethistoric`, this.getToken());
 
-  deleteSource = dataSource => axios.post(`${API_URL}/import/database/deletesource`, dataSource, config);
+  saveSource = dataSource => axios.post(
+    `${API_URL}/import/database/saveSource`,
+    dataSource,
+    this.getToken()
+  );
 
-  getHistoricData = tableName => axios.get(`${API_URL}/import/database/gethistoric/${tableName}`, config);
+  deleteSource = id => axios.delete(
+    `${API_URL}/import/database/deleteSource/${id}`,
+    this.getToken()
+  );
+
+  getHistoricData = tableName => axios.get(
+    `${API_URL}/import/database/gethistoric/${tableName}`,
+    this.getToken()
+  );
 
   getData = (tableName, dataSource) => axios.post(
     `${API_URL}/import/database/tables/${tableName}`,
     dataSource,
-    config
+    this.getToken()
   );
 
   extractExcelData = (file, sheetNumber, conf) => axios.post(`${API_URL}/import/file/excel&sheet=${sheetNumber}`, file, conf);

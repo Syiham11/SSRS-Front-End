@@ -38,14 +38,16 @@ class UserList extends Component {
     if (hasNext) {
       UserServices.getUsersByRange(lastPage, 10).then(response => {
         console.log(response.data.length);
-        if (response.data.length === 0) {
+        const { sub } = JSON.parse(sessionStorage.getItem('user'));
+        const usersList = response.data.filter(item => item.email !== sub);
+        if (usersList.length === 0) {
           console.log('empty');
           this.setState({
             hasNext: false
           });
         } else {
           this.setState({
-            users: users.concat(response.data),
+            users: users.concat(usersList),
             lastPage: lastPage + 1
           });
         }

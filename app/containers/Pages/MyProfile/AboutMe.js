@@ -74,7 +74,7 @@ export class AboutMe extends Component {
       const user = response.data;
       let userBirthday = '';
       if (user.birthday !== null) {
-        userBirthday = this.formatDate(user.birthday).substring(0, 10);
+        userBirthday = this.formatDate(user.birthday);
       }
       this.setState({
         username: user.username,
@@ -112,15 +112,18 @@ export class AboutMe extends Component {
   };
 
   handleBirthdayChange = value => {
-    console.log(this.formatDate(value).substring(0, 10));
+    console.log(this.formatDate(value));
     this.setState({
-      birthday: this.formatDate(value).substring(0, 10)
+      birthday: this.formatDate(value)
     });
   };
 
   formatDate = dateString => {
     const date = new Date(dateString);
-    return date.toISOString(date);
+    let toString = date.toISOString(date);
+    toString = toString.substring(0, 10);
+
+    return toString;
   };
 
   handleModifyProfile = () => {
