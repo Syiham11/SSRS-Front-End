@@ -33,6 +33,7 @@ import StrippedTable from '../Table/StrippedTable';
 import StrippedTable2 from '../Table/StrippedTable2';
 import ProcessDone from './ProcessDone';
 import DatawarehouseServices from '../../Services/datawarehouse';
+import ImportedTableServices from '../../Services/importedTable';
 import styles from './import-jss';
 
 class ImportComponent extends React.Component {
@@ -176,10 +177,24 @@ class ImportComponent extends React.Component {
       onClear
     } = this.props;
 
+    const importedTable = {
+      name: inputTableName,
+      creationTime: new Date()
+    };
+
+    const importedTable2 = {
+      name: inputTableName.concat('_original'),
+      creationTime: new Date()
+    };
+
+    ImportedTableServices.save(importedTable).then(() => {
+      ImportedTableServices.save(importedTable2);
+    });
+
     DatawarehouseServices.loadData(inputTableName, tableData);
 
     DatawarehouseServices.loadData(
-      inputTableName + '_original',
+      inputTableName.concat('_original'),
       originalData
     ).then(response => {
       console.log(response);
@@ -207,11 +222,15 @@ class ImportComponent extends React.Component {
   };
 
   handleDone = () => {
-    this.setState({
-      openTableName: false
-    });
-    this.loadData();
-    this.handleNext();
+    this.setState(
+      {
+        openTableName: false
+      },
+      () => {
+        this.loadData();
+        this.handleNext();
+      }
+    );
   };
 
   render() {

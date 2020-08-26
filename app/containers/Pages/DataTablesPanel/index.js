@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { Helmet } from 'react-helmet';
 import brand from 'dan-api/dummy/brand';
 import { PapperBlock } from 'dan-components';
-import Panel from './Panel';
+import ImportedTableList from './ImportedTableList';
 
 export class controlPanel extends Component {
   render() {
@@ -19,12 +19,12 @@ export class controlPanel extends Component {
           <meta property="twitter:description" content={description} />
         </Helmet>
         <PapperBlock
-          title="Control Panel"
+          title="Imported Tables"
           whiteBg
-          icon="ios-person-outline"
-          desc="Manage system users"
+          icon="md-list"
+          desc="Control and view imported tables in the system"
         >
-          <Panel />
+          <ImportedTableList />
         </PapperBlock>
       </div>
     );
