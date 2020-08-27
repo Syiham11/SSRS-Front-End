@@ -46,6 +46,8 @@ class ImportServices {
   );
 
   extractDwgData = (file, conf) => axios.post(`${API_URL}/import/file/dwg`, file, conf);
+
+  webServiceTest = dataSource => axios.post(`${API_URL}/import/webservice/testConnection`, dataSource, config);
 }
 
 export default new ImportServices();
