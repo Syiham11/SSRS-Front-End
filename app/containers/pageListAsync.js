@@ -73,3 +73,7 @@ export const Algorithms = Loadable({
   loader: () => import('./Pages/Algorithm'),
   loading: Loading
 });
+export const Tables = Loadable({
+  loader: () => import('./Pages/DataTablesPanel'),
+  loading: Loading
+});

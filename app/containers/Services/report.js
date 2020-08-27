@@ -2,15 +2,18 @@ import axios from 'axios';
 import { API } from '../../config/apiUrl';
 const API_URL = API;
 
-const config = {
-  headers: { Authorization: sessionStorage.getItem('token') }
-};
-
 class ReportServices {
-  getAll = () => axios.get(`${API_URL}/report/getAll`, config);
+  getToken = () => {
+    const token = sessionStorage.getItem('token');
+    return {
+      headers: { Authorization: token }
+    };
+  };
 
-  save = report => axios.post(`${API_URL}/report/save`, report, config);
+  getAll = () => axios.get(`${API_URL}/report/getAll`, this.getToken());
 
-  delete = report => axios.post(`${API_URL}/report/delete`, report, config);
+  save = report => axios.post(`${API_URL}/report/save`, report, this.getToken());
+
+  delete = id => axios.delete(`${API_URL}/report/delete/${id}`, this.getToken());
 }
 export default new ReportServices();

@@ -26,6 +26,12 @@ module.exports = [
         name: 'Import Page',
         link: '/app/import',
         icon: 'ios-document-outline'
+      },
+      {
+        key: 'tables',
+        name: 'Tables',
+        link: '/app/tables',
+        icon: 'ios-document-outline'
       }
       /* ,
          {

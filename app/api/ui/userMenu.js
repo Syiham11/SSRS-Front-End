@@ -32,6 +32,12 @@ module.exports = [
         name: 'Workspace',
         link: '/app/workspace',
         icon: 'ios-home-outline'
+      },
+      {
+        key: 'tables',
+        name: 'Tables',
+        link: '/app/tables',
+        icon: 'ios-document-outline'
       }
       /* ,
          {

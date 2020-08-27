@@ -2,27 +2,43 @@ import axios from 'axios';
 import { API } from '../../config/apiUrl';
 const API_URL = API;
 
-const config = {
-  headers: { Authorization: sessionStorage.getItem('token') }
-};
-
 class UserServices {
-  getAll = () => axios.get(`${API_URL}/administration/getAllUser`, config);
+  getToken = () => {
+    const token = sessionStorage.getItem('token');
+    return {
+      headers: { Authorization: token }
+    };
+  };
 
-  getAllDeactivatedUsers = () => axios.get(`${API_URL}/administration/getAllDeactivatedUsers`, config);
+  getAll = () => axios.get(`${API_URL}/administration/getAllUser`, this.getToken());
 
-  getUsersByRange = (firstLimit, lastLimit) => axios.get(`${API_URL}/getUsersByRange/${firstLimit}&${lastLimit}`, config);
+  getAllDeactivatedUsers = () => axios.get(
+    `${API_URL}/administration/getAllDeactivatedUsers`,
+    this.getToken()
+  );
 
-  getUserData = id => axios.get(`${API_URL}/getuserdata/${id}`, config);
+  getUsersByRange = (firstLimit, lastLimit) => axios.get(
+    `${API_URL}/getUsersByRange/${firstLimit}&${lastLimit}`,
+    this.getToken()
+  );
 
-  delete = user => axios.post(`${API_URL}/deleteUser`, user, config);
+  getUserData = id => axios.get(`${API_URL}/getuserdata/${id}`, this.getToken());
 
-  update = user => axios.post(`${API_URL}/updateUser`, user, config);
+  delete = id => axios.delete(`${API_URL}/deleteUser/${id}`, this.getToken());
+
+  update = user => axios.post(`${API_URL}/updateUser`, user, this.getToken());
 
   updateRole = (user, role) => axios.post(
     `${API_URL}/administration/updateUserRole/${role}`,
     user,
-    config
+    this.getToken()
   );
+
+  getToken = () => {
+    const token = sessionStorage.getItem('token');
+    return {
+      headers: { Authorization: token }
+    };
+  };
 }
 export default new UserServices();

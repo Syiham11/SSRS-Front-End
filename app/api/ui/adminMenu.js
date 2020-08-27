@@ -34,6 +34,12 @@ module.exports = [
         icon: 'ios-home-outline'
       },
       {
+        key: 'tables',
+        name: 'Tables',
+        link: '/app/tables',
+        icon: 'ios-document-outline'
+      },
+      {
         key: 'controlPanel',
         name: 'Control Panel',
         link: '/app/control',
