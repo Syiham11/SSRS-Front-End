@@ -13,6 +13,7 @@ import {
 import PropTypes from 'prop-types';
 import ListDialog from './ListDialog';
 import styles from './import-jss';
+import ImportServices from '../../Services/import';
 
 const dataTypes = [{ id: 'JSON', name: 'JSON' }, { id: 'XML', name: 'XML' }];
 
@@ -22,6 +23,9 @@ class ImportWebservice extends Component {
     isSpinnerShowed: false,
     isConnected: false,
     dialogOpen: false,
+    host: '',
+    username: '',
+    password: '',
     dialogValue: ''
   };
 
@@ -29,6 +33,43 @@ class ImportWebservice extends Component {
     this.setState({
       selectedDataType: event.target.value
     });
+  };
+
+  handleTestConnection = () => {
+    const {
+      username,
+      password,
+      host,
+      selectedDataType
+    } = this.state;
+    this.setState({
+      isSpinnerShowed: true
+    });
+    const connectionParam = {
+      userId: '1',
+      type: selectedDataType,
+      username,
+      password,
+      host
+    };
+    ImportServices.webServiceTest(connectionParam).then(response => {
+      if (response.data) {
+        console.log(response.data);
+        this.setState({
+          testConnected: true
+        });
+      } else {
+        this.setState({
+          testConnected: false
+        });
+      }
+    });
+    setTimeout(() => {
+      this.setState({
+        isSpinnerShowed: false,
+        isOpenedDialog: true
+      });
+    }, 3000);
   };
 
   handleImport = () => {
@@ -62,7 +103,26 @@ class ImportWebservice extends Component {
     }
   };
 
+  handleUrlText = event => {
+    this.setState({
+      host: event.target.value
+    });
+  };
+
+  handleUsernameText = event => {
+    this.setState({
+      username: event.target.value
+    });
+  };
+
+  handlePasswordText = event => {
+    this.setState({
+      password: event.target.value
+    });
+  };
+
   render() {
+    console.log(this.state);
     const {
       selectedDataType,
       isSpinnerShowed,
@@ -151,13 +211,19 @@ class ImportWebservice extends Component {
                     ))}
                   </Select>
                 </FormControl>
+                <div className={classes.divSpace}>
+                  <Button
+                    className={classes.buttonWithoutWidth}
+                    onClick={this.handleTestConnection}
+                  >
+                    Test connection
+                  </Button>
+                  <Button className={classes.buttonWithoutWidth} onClick={this.handleImport}>
+                    Import
+                  </Button>
+                </div>
               </Grid>
             </Grid>
-            <div className={classes.divCenter}>
-              <Button className={classes.button} onClick={this.handleImport}>
-                Import
-              </Button>
-            </div>
           </Collapse>
         </div>
       </div>
