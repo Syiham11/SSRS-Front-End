@@ -54,7 +54,7 @@ class ImportServices {
     this.getToken()
   );
 
-  extractExcelData = (file, sheetNumber, conf) => axios.post(`${API_URL}/import/file/excel&sheet=${sheetNumber}`, file, conf);
+  extractExcelData = (file, sheetNumber, headerLine, conf) => axios.post(`${API_URL}/import/file/excel&sheet=${sheetNumber}&headerLine=${headerLine}`, file, conf);
 
   extractCsvData = (file, csvHeaderState, conf) => axios.post(
     `${API_URL}/import/file/csv&header=${csvHeaderState}`,

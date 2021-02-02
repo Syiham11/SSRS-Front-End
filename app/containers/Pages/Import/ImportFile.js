@@ -33,9 +33,7 @@ const fileTypes = [
   { id: 'Excel', extension: 'XLSX' },
   { id: 'CSV', extension: 'CSV' },
   { id: 'XML', extension: 'XML' },
-  { id: 'Text', extension: 'TXT' },
-  { id: 'Autocad', extension: 'DWG' },
-  { id: 'Arcview', extension: 'SHP' }
+  { id: 'Text', extension: 'TXT' }
 ];
 
 const separators = [
@@ -56,6 +54,7 @@ class ImportFile extends Component {
     dialogValue: '',
     file: {},
     sheetNumber: 0,
+    headerLine: 1,
     csvHeaderState: '',
     isImport: false
   };
@@ -88,6 +87,7 @@ class ImportFile extends Component {
       selectedFileType,
       csvHeaderState,
       sheetNumber,
+      headerLine,
       separator
     } = this.state;
     const {
@@ -108,7 +108,7 @@ class ImportFile extends Component {
       }
     };
     if (selectedFileType === 'XLSX') {
-      ImportServices.extractExcelData(data, sheetNumber, config)
+      ImportServices.extractExcelData(data, sheetNumber, headerLine, config)
         .then(response => {
           console.log(response.data);
           setTableData(response.data);
@@ -237,6 +237,12 @@ class ImportFile extends Component {
     });
   };
 
+  handleHeaderLineChange = event => {
+    this.setState({
+      headerLine: event.target.value
+    });
+  };
+
   handleChangeCsvHeaderState = e => {
     this.setState({
       csvHeaderState: e.target.value
@@ -251,6 +257,7 @@ class ImportFile extends Component {
       dialogOpen,
       dialogValue,
       sheetNumber,
+      headerLine,
       csvHeaderState,
       isImport
     } = this.state;
@@ -308,8 +315,22 @@ class ImportFile extends Component {
                       value={sheetNumber}
                       type="number"
                       className={classes.textField}
-                      fullWidth
+                      style={{
+                        width: '50%'
+                      }}
                       onChange={this.handleSheetNumberChange}
+                    />
+                    <TextField
+                      label="Header line"
+                      variant="outlined"
+                      name="headerLine"
+                      value={headerLine}
+                      type="number"
+                      className={classes.textField}
+                      style={{
+                        width: '50%'
+                      }}
+                      onChange={this.handleHeaderLineChange}
                     />
                   </Grid>
                 ) : (

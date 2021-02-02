@@ -335,7 +335,7 @@ class ImportComponent extends React.Component {
             desc="Upload a file to import data."
           >
             <div>
-              <ImportFile id={id} handleNext={this.handleNext} />
+              {<ImportFile id={id} handleNext={this.handleNext} /> || <div />}
             </div>
           </PapperBlock>
         </Slide>
@@ -355,7 +355,9 @@ class ImportComponent extends React.Component {
             desc="Insert database configuration to import data."
           >
             <div>
-              <ImportDatabase id={id} handleNext={this.handleNext} />
+              {<ImportDatabase id={id} handleNext={this.handleNext} /> || (
+                <div />
+              )}
             </div>
           </PapperBlock>
         </Slide>

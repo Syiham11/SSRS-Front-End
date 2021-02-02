@@ -221,7 +221,7 @@ export class ReportEditor extends Component {
     if (oldProps.chartList !== chartList) {
       setTimeout(() => {
         this.updateReportData();
-      }, 500);
+      }, 2000);
     }
     if (isSpinnerShowed) {
       setTimeout(() => {
@@ -234,7 +234,51 @@ export class ReportEditor extends Component {
       }, 500);
     }
   }
+
   /* eslint-enable */
+  updateReportData2 = () => {
+    const { chartList } = this.props;
+    const chartImages = [];
+    const chartTables = [];
+    const keys = [];
+
+    const getImage = obj => new Promise(resolve => {
+      const chartKeys = [];
+      const chart = am4core.registry.baseSprites[obj.id];
+      if (chart) {
+        const { data } = chart;
+        chartTables.push(data);
+        chart.exporting.getImage('png').then(imageData => {
+          chartImages.push(imageData);
+          chartKeys.push(chart.xAxes.getIndex(0).dataFields.category);
+          for (let i = 0; i < chart.series.length; i += 1) {
+            chartKeys.push(chart.series.getIndex(i).dataFields.valueY);
+          }
+          keys.push(chartKeys);
+          resolve();
+        });
+      }
+    });
+
+    const promises = chartList.map(async obj => {
+      // do some operation on ele
+      // ex: var result = await some_async_function_that_return_a_promise(ele)
+      // In the below I use doublify() to be such an async function
+      if (obj.settings.choosedChart !== '') {
+        await getImage(obj);
+      }
+    });
+
+    Promise.all(promises).then(() => {
+      this.setState({
+        chartImages,
+        chartTableElements: {
+          chartTables,
+          keys
+        }
+      });
+    });
+  };
 
   updateReportData = () => {
     const { chartList } = this.props;
@@ -553,7 +597,7 @@ export class ReportEditor extends Component {
         type: item.type,
         chartIndex: -1,
         tableIndex: -1,
-        text: '',
+        text: item.text,
         imageData: '',
         x: item.x,
         y: item.y,
@@ -729,7 +773,9 @@ export class ReportEditor extends Component {
               width: '100%'
             }}
             placeholder="Insert text"
+            value={row.text}
             onChange={value => this.handleQuillTextChange(value, row.id)}
+            onMouseDown={() => this.selectElement(row.id)}
             onFocus={() => this.selectElement(row.id)}
           />
         </button>
@@ -967,10 +1013,10 @@ export class ReportEditor extends Component {
     });
   };
 
-  openDialogChoose = (id, table) => {
+  openDialogChoose = (id, type) => {
     this.setState({
       openDialog: true,
-      dialogType: table,
+      dialogType: type,
       clickedItem: id
     });
   };
@@ -1314,7 +1360,7 @@ export class ReportEditor extends Component {
           open={openDialog}
           onClose={this.closeDialogChoose}
         >
-          <DialogTitle id="simple-dialog-title">Choose chart</DialogTitle>
+          <DialogTitle id="simple-dialog-title">Choose chart test</DialogTitle>
           <List component="nav" aria-label="main mailbox folders">
             {chartList.map((row, index) => (
               <ListItem
