@@ -144,7 +144,7 @@
     "jss-rtl": "^0.3.0",
     "jwt-decode": "^2.2.0",
     "keycode": "^2.2.0",
-    "lodash": "^4.17.19",
+    "lodash": "^4.17.21",
     "material-table": "^1.63.1",
     "mathjs": "^6.6.2",
     "mathjs-simple-integral": "^0.1.1",
