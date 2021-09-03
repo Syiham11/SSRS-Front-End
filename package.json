@@ -133,7 +133,7 @@
     "history": "4.9.0",
     "hoist-non-react-statics": "3.3.0",
     "html2canvas": "^1.0.0-rc.5",
-    "immer": "3.0.0",
+    "immer": "9.0.6",
     "immutable": "3.8.2",
     "interactjs": "^1.9.10",
     "intl": "1.2.5",
